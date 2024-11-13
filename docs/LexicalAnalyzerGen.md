@@ -16,13 +16,20 @@ classDiagram
 	class Automata{
 		-initialState : State
 		-currentState : State[]
-		-lastAcceptor : Pair~State[], int~
-		-consumedInput : StringBuilder
+		-lastAcceptor : State[]
+		-lastAcceptorIdx : int
+		-acceptorEncountered : bool
+		-inputIdx : int
+		-inputStream : String
 
-		+reset()
-		+next(char input)
-		+getState() State[]
-		+getLastAcceptor()
+		+Automata(State initialState)
+		+~Automata()
+		-reset()
+		+setInput(String input)
+		+nextToken() String
+		+getLastAcceptor() State
+		+getLastTokenEnd() int
+		+isFinished() boolean
 	}
 	
 	class State{
@@ -32,6 +39,8 @@ classDiagram
 		-transitions : HashMap~char, State[]~
 		-isNull : boolean
 
+		+State(String name, bool isAcceptor, int acceptorPriority, bool isNull)
+		+~State()
 		+addTransition(char input, State[] output)
 		+getTransition(char input) State[]
 		+isAcceptor() boolean
