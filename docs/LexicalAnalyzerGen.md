@@ -51,7 +51,7 @@ classDiagram
 	Automata o-- State
 	
 	class FileParser{
-		-difinitions : HashMap~String, String~
+		-definitions : HashMap~String, String~
 		-expressions : HashMap~String, String~
 		-keywords : List~String~
 		-punctuations : List~char~
@@ -59,8 +59,8 @@ classDiagram
 		+readFile(String filePath)
 		+getDefinitions() HashMap~String, String~
 		+getExpressions() HashMap~String, String~
-		-keywords : List~String~
-		-punctuations : List~char~
+		+getKeywords() List~String~
+		+getPunctuations() List~char~
 	}
 
 ```
@@ -75,7 +75,7 @@ classDiagram
 
 
 	class DFABuilder{
-		+buildAutomata(Automata NFAAutomata) Automata
+		+buildAutomata(Automata NFA) Automata
 	}
 
 
