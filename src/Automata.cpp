@@ -54,10 +54,14 @@ string Automata::nextToken(){
 			// If transition exists then add states to next_states
 			if(next != nullptr){
 				for (auto next_state : *next){
-					if(!next_state->isNull()) next_states.push_back(next_state);
+					next_states.push_back(next_state);
 				}
 			}
 		}
+		// If any epsilon transitions exist from a state in next_states then add them to next_states
+		// best to make current_states and next_states sets before implmenting this
+		// implement later
+		
 		// Check if next_states includes acceptors and update last_acceptor and last_acceptor_idx
 		for (auto state : next_states){
 			if(state->isAcceptor()){
@@ -102,6 +106,10 @@ State* Automata::getLastAcceptor(){
 
 int Automata::getLastTokenEnd(){
 	return last_acceptor_idx;
+}
+
+vector<State*> Automata::getCurrentState(){
+	return current_states;
 }
 
 

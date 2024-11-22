@@ -69,7 +69,10 @@ class Automata
 	// Returns the index of the last character of the last accepted token in the input.
 	int getLastTokenEnd();
 
+	// Returns the current states this automata is in.
+	vector<State*> getCurrentState();
 
+	// Returns true if all input provided by `setInput()` has been processed into tokens.
 	bool isFinished();
 
     State *getInitialState() const;
