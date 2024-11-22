@@ -1,4 +1,5 @@
 #include "Automata.h"
+#include <bits/algorithmfwd.h>
 
 
 
@@ -107,3 +108,33 @@ int Automata::getLastTokenEnd(){
 bool Automata::isFinished(){
 	return input_idx == input_size;
 }
+State* Automata::getInitialState() const { return initial_state; }
+
+
+void Automata::merge(const Automata& other) {
+    // Merge the states and transitions
+    State* otherInitial = other.getInitialState();
+
+    // Ensure the initial state of the other automata is included
+    if (std::find(current_states.begin(), current_states.end(), otherInitial) == current_states.end()) {
+        current_states.push_back(otherInitial);
+    }
+
+    // Transfer all other states and transitions to the current automata
+    // Assuming states and transitions are part of the State class
+    for (auto state : other.current_states) {
+        if (std::find(current_states.begin(), current_states.end(), state) == current_states.end()) {
+            current_states.push_back(state);
+        }
+    }
+
+    // Handle the last acceptor states if needed
+    if (other.last_acceptor.size() > 0) {
+        last_acceptor.insert(last_acceptor.end(), other.last_acceptor.begin(), other.last_acceptor.end());
+    }
+}
+
+void Automata::setLastAcceptor(State* acceptor) {
+	last_acceptor = std::vector<State*>{acceptor};
+}
+

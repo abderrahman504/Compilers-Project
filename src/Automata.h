@@ -72,6 +72,12 @@ class Automata
 
 	bool isFinished();
 
+    State *getInitialState() const;
+
+    void merge(const Automata &other);
+
+    void setLastAcceptor(State *acceptor);
+	
 };
 
 #endif
