@@ -24,7 +24,12 @@ Automata NFABuilder::combineNFAs(const std::vector<Automata>& nfas) {
 
     return combined;
 }
-
+/**
+ * @brief Builds a Non-Deterministic Finite Automaton (NFA) from a regular expression using Thomson's Construction.
+ * 
+ * @param regex The regular expression to convert into an NFA.
+ * @return Automata The constructed NFA representing the given regular expression.
+ */
 Automata NFABuilder::regexToNFA(const std::string& regex) {
     std::stack<Automata> nfaStack;
     std::string postfix = toPostfix(regex);
@@ -51,7 +56,7 @@ Automata NFABuilder::regexToNFA(const std::string& regex) {
                 State* accept = createState(true);
 
                 start->addTransition('\0', new std::vector<State*>({nfa.getInitialState(), accept}));
-                nfa.last_acceptor->addTransition('\0', new std::vector<State*>({nfa.getInitialState(), accept}));
+                nfa.getLastAcceptor()->addTransition('\0', new std::vector<State*>({nfa.getInitialState(), accept}));
 
                 Automata result(start);
                 result.merge(nfa);
@@ -64,7 +69,7 @@ Automata NFABuilder::regexToNFA(const std::string& regex) {
             start->addTransition(c, new std::vector<State*>({accept}));
 
             Automata singleCharNFA(start);
-            singleCharNFA.last_acceptor = accept;
+            singleCharNFA.setLastAcceptor(accept);
 
             nfaStack.push(singleCharNFA);
         }
@@ -74,9 +79,60 @@ Automata NFABuilder::regexToNFA(const std::string& regex) {
 }
 
 std::string NFABuilder::toPostfix(const std::string& regex) {
-    // Implement Shunting-Yard algorithm to convert regex from infix to postfix
-    return ""; // Placeholder
+    std::stack<char> operatorStack;
+    std::string postfix;
+
+    auto isOperand = [](char c) {
+        return std::isalnum(c); // Alphanumeric characters are operands
+    };
+
+    auto precedence = [](char op) {
+        switch (op) {
+            case '*': return 3; // High precedence for Kleene star
+            case '.': return 2; // Concatenation (implicit)
+            case '|': return 1; // Alternation
+            default: return 0;
+        }
+    };
+
+    auto isOperator = [](char c) {
+        return c == '*' || c == '.' || c == '|';
+    };
+
+    for (char c : regex) {
+        if (isOperand(c)) {
+            postfix += c; // Append operands directly to the postfix string
+        } else if (c == '(') {
+            operatorStack.push(c); // Push '(' to the stack
+        } else if (c == ')') {
+            // Pop until '(' is encountered
+            while (!operatorStack.empty() && operatorStack.top() != '(') {
+                postfix += operatorStack.top();
+                operatorStack.pop();
+            }
+            if (!operatorStack.empty() && operatorStack.top() == '(') {
+                operatorStack.pop(); // Remove the '('
+            }
+        } else if (isOperator(c)) {
+            // Pop operators of higher or equal precedence
+            while (!operatorStack.empty() &&
+                   precedence(operatorStack.top()) >= precedence(c)) {
+                postfix += operatorStack.top();
+                operatorStack.pop();
+            }
+            operatorStack.push(c); // Push the current operator
+        }
+    }
+
+    // Pop remaining operators
+    while (!operatorStack.empty()) {
+        postfix += operatorStack.top();
+        operatorStack.pop();
+    }
+
+    return postfix;
 }
+
 
 bool NFABuilder::isOperator(char c) {
     return c == '|' || c == '*' || c == '+' || c == '(' || c == ')';
