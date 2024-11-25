@@ -45,8 +45,9 @@ Automata NFABuilder::regexToNFA(const std::string& regex) {
                 start->addTransition('\0', new std::vector<State*>({nfa2.getInitialState()}));
 
                 Automata result(start);
-                result.merge(nfa1);
-                result.merge(nfa2);
+                // No need for merge, try it.
+                // result.merge(nfa1);
+                // result.merge(nfa2);
 
                 nfaStack.push(result);
             } else if (c == '*') {
@@ -59,7 +60,8 @@ Automata NFABuilder::regexToNFA(const std::string& regex) {
                 nfa.getLastAcceptor()->addTransition('\0', new std::vector<State*>({nfa.getInitialState(), accept}));
 
                 Automata result(start);
-                result.merge(nfa);
+                // No need for merge, try it.
+                // result.merge(nfa);
 
                 nfaStack.push(result);
             }
