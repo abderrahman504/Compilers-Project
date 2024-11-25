@@ -14,4 +14,4 @@ build/%.o : src/%.cpp
 
 
 clean:
-	rm -rf build/*.o 
+	rm -rf build/*
