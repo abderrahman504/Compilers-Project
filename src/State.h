@@ -33,6 +33,9 @@ class State
 	// Gets all states that this state moves to when `input` is provided
 	vector<State*>* getTransitions(char input);
 
+	//Gets all states that are moved to with a epsilon_transition
+	vector<State*>* getEpsilonTransitions();
+
 	// Returns true if this state is an acceptor state
 	bool isAcceptor();
 

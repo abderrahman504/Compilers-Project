@@ -45,6 +45,11 @@ vector<State*>* State::getTransitions(char input){
 	else return transitions[input];
 }
 
+vector<State*>* State::getEpsilonTransitions(){
+	if(transitions.find(0) == transitions.end()) return nullptr;
+	return transitions[0];
+}
+
 bool State::isAcceptor(){return is_acceptor;}
 
 int State::getAcceptorPriority(){return acceptor_priority;}
