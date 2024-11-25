@@ -2,6 +2,7 @@
 #define AUTOMATA_H
 #include "State.h"
 #include <vector>
+#include <unordered_set>
 
 using namespace std;
 
@@ -39,36 +40,42 @@ class Automata
 	private:
 
 	State* initial_state; // The initial state of the automata.
-	vector<State*> current_states; // The current state(s) this automata is in.
-	vector<State*> last_acceptor; // Stores the last acceptor state(s) encountered since the last call to nextToken().
+	unordered_set<State*> current_states; // The current state(s) this automata is in.
+	unordered_set<State*> last_acceptor; // Stores the last acceptor state(s) encountered since the last call to nextToken().
 	int last_acceptor_idx; // The index in the input stream where the last acceptor state was encountered.
 	bool acceptor_encountered; // whether an acceptor state has been encountered since the last call to nextToken().
 	int input_idx; // Tracks the progress of the automata through the input stream.
 	char* input_stream; // The input stream to read from.
 	int input_size; // Size of the input stream.
 
-	// Resets the automata to the initial state. Progress through the input_stream is unaffected.
-	void reset();
 
 	public:
 
 	Automata(State* initial_state);
 	
 	~Automata();
+	
+	// Resets the automata to the initial state. Progress through the input_stream is unaffected.
+	void reset();
 
-	// Sets the input that this automata will read from
+	// Sets the input that this automata will read from. 
+	// Use nextToken() to tokenize the input until isFinished() is true
 	void setInput(char* input_stream, int size);
 
 	// Reads and returns the next valid token from the input stream. If no valid token is found then the remaining input is returned as an error token.
 	// Use getLastAcceptor() to determine the type of the token returned.
 	string nextToken();
 
-	// Returns the latest acceptor state with highest priority this automata encountered while reading input.
+	// Returns the latest acceptor state with highest priority this automata encountered while reading input, or NULL if an invalid token is encountered.
 	State* getLastAcceptor();
 
 	// Returns the index of the last character of the last accepted token in the input.
 	int getLastTokenEnd();
 
+	// Returns the current states this automata is in.
+	unordered_set<State*> getCurrentState();
+
+	// Returns true if all input provided by `setInput()` has been processed into tokens.
 	bool isFinished();
 /**
  * @return Automata's initial state.
@@ -97,6 +104,12 @@ class Automata
 	
 
 
+    State *getInitialState() const;
+
+    void merge(const Automata &other);
+
+    void setLastAcceptor(State *acceptor);
+	
 };
 
 #endif
