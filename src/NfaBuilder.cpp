@@ -19,7 +19,7 @@ Automata NFABuilder::combineNFAs(const std::vector<Automata>& nfas) {
     Automata combined(startState);
 
     for (const auto& nfa : nfas) {
-        startState->addTransition('\0', new std::vector<State*>({nfa.getInitialState()}));
+        startState->addTransition('\0', std::vector<State*>({nfa.getInitialState()}));
     }
 
     return combined;
@@ -41,8 +41,8 @@ Automata NFABuilder::regexToNFA(const std::string& regex) {
                 Automata nfa1 = nfaStack.top(); nfaStack.pop();
 
                 State* start = createState();
-                start->addTransition('\0', new std::vector<State*>({nfa1.getInitialState()}));
-                start->addTransition('\0', new std::vector<State*>({nfa2.getInitialState()}));
+                start->addTransition('\0', std::vector<State*>({nfa1.getInitialState()}));
+                start->addTransition('\0', std::vector<State*>({nfa2.getInitialState()}));
 
                 Automata result(start);
                 // No need for merge, try it.
@@ -56,8 +56,8 @@ Automata NFABuilder::regexToNFA(const std::string& regex) {
                 State* start = createState();
                 State* accept = createState(true);
 
-                start->addTransition('\0', new std::vector<State*>({nfa.getInitialState(), accept}));
-                nfa.getLastAcceptor()->addTransition('\0', new std::vector<State*>({nfa.getInitialState(), accept}));
+                start->addTransition('\0', std::vector<State*>({nfa.getInitialState(), accept}));
+                nfa.getLastAcceptor()->addTransition('\0', std::vector<State*>({nfa.getInitialState(), accept}));
 
                 Automata result(start);
                 // No need for merge, try it.
@@ -68,7 +68,7 @@ Automata NFABuilder::regexToNFA(const std::string& regex) {
         } else {
             State* start = createState();
             State* accept = createState(true);
-            start->addTransition(c, new std::vector<State*>({accept}));
+            start->addTransition(c, std::vector<State*>({accept}));
 
             Automata singleCharNFA(start);
             singleCharNFA.setLastAcceptor(accept);

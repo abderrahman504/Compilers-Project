@@ -100,15 +100,6 @@ class Automata
  * @param other the other NFA to be merged with
  */
 	void merge(const Automata &other);
-
-	
-
-
-    State *getInitialState() const;
-
-    void merge(const Automata &other);
-
-    void setLastAcceptor(State *acceptor);
 	
 };
 

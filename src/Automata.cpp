@@ -22,11 +22,9 @@ void Automata::reset(){
 	current_states.clear();
 	current_states.insert(initial_state);
 	// If there are epsilon transitions from the initial state then add them to the current state.
-	vector<State*>* epsi_trans = initial_state->getEpsilonTransitions();
-	if(epsi_trans != nullptr){
-		for(auto state : *epsi_trans){
-			current_states.insert(state);
-		}
+	vector<State*> epsi_trans = initial_state->getEpsilonTransitions();
+	for(auto state : epsi_trans){
+		current_states.insert(state);
 	}
 }
 
@@ -57,22 +55,16 @@ string Automata::nextToken(){
 		unordered_set<State*> next_states = unordered_set<State*>();
 		// Transition from current states to next states using c as input
 		for (auto state : current_states){
-			vector<State*>* next = state->getTransitions(c);
-			// If transition exists then add states to next_states
-			if(next != nullptr){
-				for (auto next_state : *next){
-					next_states.insert(next_state);
-				}
+			vector<State*> next = state->getTransitions(c);
+			for (auto next_state : next){
+				next_states.insert(next_state);
 			}
 		}
 		// If any epsilon transitions exist from a state in next_states then add them to next_states
 		for (auto state : next_states){
-			vector<State*>* epsi_trans = state->getEpsilonTransitions();
-			// If epsilon transitions exist then add states to next_states
-			if(epsi_trans != nullptr){
-				for (auto next_state : *epsi_trans){
-					next_states.insert(next_state);
-				}
+			vector<State*> epsi_trans = state->getEpsilonTransitions();
+			for (auto next_state : epsi_trans){
+				next_states.insert(next_state);
 			}
 		}
 		
@@ -139,33 +131,9 @@ void Automata::merge(const Automata& other) {
 	// Abdelrahman's suggestion for merge implementation
 	State* new_initial = new State("", false, 0);
 	vector<State*> vec = vector<State*>{initial_state, other.initial_state};
-	new_initial->addEpsilonTransition(&vec);
+	new_initial->addEpsilonTransition(vec);
 	initial_state = new_initial;
 
-	// The rest should be removed
-
-
-
-    // Merge the states and transitions
-    //State* otherInitial = other.getInitialState();
-
-    //// Ensure the initial state of the other automata is included
-    //if (std::find(current_states.begin(), current_states.end(), otherInitial) == current_states.end()) {
-    //    current_states.insert(otherInitial);
-    //}
-
-    //// Transfer all other states and transitions to the current automata
-    //// Assuming states and transitions are part of the State class
-    //for (auto state : other.current_states) {
-    //    if (std::find(current_states.begin(), current_states.end(), state) == current_states.end()) {
-    //        current_states.insert(state);
-    //    }
-    //}
-
-    //// Handle the last acceptor states if needed
-    //if (other.last_acceptor.size() > 0) {
-    //    last_acceptor.insert(last_acceptor.end(), other.last_acceptor.begin(), other.last_acceptor.end());
-    //}
 }
 
 void Automata::setLastAcceptor(State* acceptor) {
