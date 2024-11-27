@@ -12,8 +12,11 @@ private:
     std::vector<std::string> keywords;                               // List of keywords
     std::vector<std::string> punctuations;                           // List of operators
 
-    std::string expandRhs(std::string rhs);  // Expands any character ranges like a-z, 0-9 etc, and substitutes any definition references.
-    std::string substituteDefinitions(std::string rhs); // Replaces any definitions referenced in `rhs` with the the definition's RHS.
+    // Expands any character ranges like a-z, 0-9 etc, and substitutes any definition references.
+    std::string expandRhs(std::string rhs);
+    
+    // Replaces any definitions referenced in `rhs` with the the definition's RHS.
+    std::string substituteDefinitions(std::string rhs); 
 
 public:
     FileParser() = default;

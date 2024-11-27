@@ -26,14 +26,10 @@ void FileParser::parseFile(const string& filePath) {
         std::smatch match;
         if (std::regex_match(line, match, defRegex)) {
             // Regular Definition
-            string rhs = std::regex_replace(match[2].str(), std::regex("\\s"), "");
-            vector<string> definitions = processDefinitionRhs(rhs);
-            regularDefinitions[match[1]] = definitions;
+            regularDefinitions[match[1]] = expandRhs(match[2].str());
         } else if (std::regex_match(line, match, exprRegex)) {
             // Regular Expression
-            // EXPAND ANY DIFINITIONS BEFORE STORING THE EXPRESSION
-            string expanded_rhs = processExpressionRhs(match[2]);
-            regularExpressions[match[1]] = expanded_rhs;
+            regularExpressions[match[1]] = expandRhs(match[2]);
         } else if (std::regex_match(line, match, keywordRegex)) {
             // Keywords
             stringstream ss(match[1]);
@@ -49,6 +45,8 @@ void FileParser::parseFile(const string& filePath) {
             while (std::getline(ss, punctuation, ' ')) {
                 punctuations.push_back(punctuation);
             }
+            punctuations.push_back(" ");
+            punctuations.push_back("\n");
         }
     }
 
@@ -56,7 +54,7 @@ void FileParser::parseFile(const string& filePath) {
 }
 
 // Getters
-const std::unordered_map<string, vector<string>>& FileParser::getRegularDefinitions() const {
+const std::unordered_map<string, string>& FileParser::getRegularDefinitions() const {
     return regularDefinitions;
 }
 
@@ -73,65 +71,72 @@ const vector<string>& FileParser::getPunctuations() const {
 }
 
 
-vector<string> FileParser::processDefinitionRhs(string rhs)
+string FileParser::expandRhs(string rhs)
 {
-    vector<string> definitions = vector<string>();
+    // if rhs is referencing any other definitions then substitute them
+    rhs = substituteDefinitions(rhs);
+
+    string expanded_rhs = "";
     int idx = -1;
     while (++idx < rhs.size())
     {
         char c = rhs[idx];
         // If c is followed by a dash and another character then this is a range of characters
         if(idx < rhs.size()-2 && rhs[idx+1] == '-'){
+            expanded_rhs += '(';
             for(char i = c; i <= rhs[idx+2]; i++){
-                string str("a");
-                str[0] = i;
-                definitions.push_back(str);
+                expanded_rhs += i;
+                expanded_rhs += '|';
             }
+            expanded_rhs.pop_back();
+            expanded_rhs += ')';
             idx += 2;
             continue;
         }
-        else{ //Otherwise take all characters until | or end
-            if (c == '|') continue;
-
-            string str("");
-            str += c;
-            idx++;
-            while(idx < rhs.size() && rhs[idx] != '|'){
-                c = rhs[idx];
-                str += c;
-                idx++;
-            }
-            definitions.push_back(str);
-            // decrement idx if | was encountered
-            idx--;
+        else{ //Otherwise add the character to the rhs
+            expanded_rhs += c;
         }
     }
 
-    return definitions;
+    return expanded_rhs;
 }
 
-
-string FileParser::processExpressionRhs(string rhs){
-    unordered_map<string, string> substitutions = unordered_map<string, string>();
-    for (auto it : regularDefinitions){
-        // Check if it.first exists in rhs and replace it with the strings in it.second piped up
-        string def_name = it.first;
-        vector<string> def_values = it.second;
-        string def_values_piped = "(";
-        for (auto val : def_values){
-            def_values_piped += val + "|";
+string FileParser::substituteDefinitions(string rhs)
+{
+    for (auto entry : regularDefinitions){
+        int start = 0;
+        while(true){
+            int pos = rhs.find(entry.first, start);
+            if(pos == string::npos) break;
+            rhs.replace(pos, entry.first.size(), '(' + entry.second + ')');
+            start = pos + entry.first.size();
         }
-        def_values_piped.pop_back(); // Remove the last pipe
-        def_values_piped += ")";
-        substitutions[def_name] = def_values_piped;
-    }
-
-    // Replace all definitions in the rhs
-    for (auto it : substitutions){
-        string def_name = it.first;
-        string def_values_piped = it.second;
-        rhs = regex_replace(rhs, regex(def_name), def_values_piped);
     }
     return rhs;
 }
+
+
+//string FileParser::processExpressionRhs(string rhs){
+//    unordered_map<string, string> substitutions = unordered_map<string, string>();
+//    for (auto it : regularDefinitions){
+//        // Check if it.first exists in rhs and replace it with the strings in it.second piped up
+//        string def_name = it.first;
+//        vector<string> def_values = it.second;
+//        string def_values_piped = "(";
+//        for (auto val : def_values){
+//            def_values_piped += val + "|";
+//        }
+//        def_values_piped.pop_back(); // Remove the last pipe
+//        def_values_piped += ")";
+//        substitutions[def_name] = def_values_piped;
+//    }
+
+//    // Replace all definitions in the rhs
+//    for (auto it : substitutions){
+//        string def_name = it.first;
+//        string def_values_piped = it.second;
+//        rhs = regex_replace(rhs, regex(def_name), def_values_piped);
+//    }
+//    return rhs;
+//}
 
