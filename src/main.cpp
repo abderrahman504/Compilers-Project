@@ -1,10 +1,10 @@
 #include "State.h"
 #include "Automata.h"
+#include "RulesParsing/FileParser.h"
 
 
-int main(char argc[], int argv) {
-	State state = State("state", true, 1);
-	Automata automata = Automata(&state);
-	printf("Hello, World!");
+int main(int argv, char **argc) {
+	FileParser parser = FileParser();
+	parser.parseFile("example_rules.txt");
 	return 0;
 }

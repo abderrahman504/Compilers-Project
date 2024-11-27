@@ -1,4 +1,4 @@
-OBJ_FILES := build/main.o build/Automata.o build/State.o
+OBJ_FILES := build/main.o build/Automata.o build/State.o build/RulesParsing/FileParser.o
 
 
 
