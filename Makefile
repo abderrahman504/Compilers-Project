@@ -1,12 +1,13 @@
-OBJ_FILES := build/main.o build/Automata.o build/State.o build/RulesParsing/FileParser.o
+OBJ_FILES := build/main.o build/Automata.o build/State.o build/NfaBuilder.o build/RulesParsing/FileParser.o
+
+EXECUTABLE_NAME := project
 
 
+all : exec_compile
 
-all : build
 
-
-build : $(OBJ_FILES)
-	g++  $(OBJ_FILES) -o ./build/project.exe
+exec_compile : $(OBJ_FILES)
+	g++  $(OBJ_FILES) -o ./build/$(EXECUTABLE_NAME).exe
 
 
 build/%.o : src/%.cpp
