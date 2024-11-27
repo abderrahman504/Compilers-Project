@@ -7,7 +7,7 @@ NFABuilder::NFABuilder() : stateCounter(0) {}
 
 State* NFABuilder::createState(bool isAcceptor, int acceptorPriority) {
     std::string stateName = "q" + std::to_string(stateCounter++);
-    return new State(stateName, isAcceptor, acceptorPriority, false);
+    return new State(stateName, isAcceptor, acceptorPriority);
 }
 
 Automata NFABuilder::buildNFA(const std::string& regex) {
