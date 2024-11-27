@@ -1,6 +1,5 @@
 #include "Automata.h"
-#include <bits/algorithmfwd.h>
-
+#include <algorithm>
 
 
 
