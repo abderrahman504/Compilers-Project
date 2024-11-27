@@ -7,7 +7,16 @@ State::State(string name, bool is_acceptor, int acceptor_priority){
 	this->acceptor_priority = acceptor_priority;
 	transitions = unordered_map<char, vector<State*>*>();
 }
-
+    // copy constructor
+State::State(const State& s)
+{
+	name = s.name;
+	is_acceptor = s.is_acceptor;
+	acceptor_priority = s.acceptor_priority;
+	is_null = s.is_null;
+	transitions = unordered_map<char, vector<State*>*>();
+	transitions = s.transitions;
+}
 State::~State(){
 	// delete each vector in the transitions map
 	for (auto it = transitions.begin(); it != transitions.end(); ++it){

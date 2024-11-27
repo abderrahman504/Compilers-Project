@@ -77,6 +77,32 @@ class Automata
 
 	// Returns true if all input provided by `setInput()` has been processed into tokens.
 	bool isFinished();
+/**
+ * @return Automata's initial state.
+ * 
+ */
+    State *getInitialState() const;
+/**
+ * @brief Set the Last Acceptor object
+ * 
+ * @param s state to be the last acceptor state.
+ */
+    void setLastAcceptor(State *s);
+    
+    /**
+     * @brief Set the Initial State object
+     *
+     */
+    void setInitialState();
+/**
+ * @brief merge 2 NFAs together into a single automata
+ * 
+ * @param other the other NFA to be merged with
+ */
+	void merge(const Automata &other);
+
+	
+
 
     State *getInitialState() const;
 

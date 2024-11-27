@@ -128,6 +128,7 @@ unordered_set<State*> Automata::getCurrentState(){
 }
 
 
+
 bool Automata::isFinished(){
 	return input_idx == input_size;
 }
@@ -170,4 +171,5 @@ void Automata::merge(const Automata& other) {
 void Automata::setLastAcceptor(State* acceptor) {
 	last_acceptor = std::unordered_set<State*>{acceptor};
 }
+
 
