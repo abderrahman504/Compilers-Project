@@ -63,3 +63,7 @@ int State::getAcceptorPriority(){return acceptor_priority;}
 unordered_map<char, vector<State*>> State::getTransitions(){
 	return transitions;
 }
+
+string State::getName(){
+	return name;
+}

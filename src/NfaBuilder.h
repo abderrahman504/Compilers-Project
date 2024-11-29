@@ -2,7 +2,7 @@
 #define NFABUILDER_H
 
 #include "Automata.h"
-#include "FileParser.h"
+#include "RulesParsing/FileParser.h"
 
 class NFABuilder {
 private:
