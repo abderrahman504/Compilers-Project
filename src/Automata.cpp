@@ -1,5 +1,6 @@
 #include "Automata.h"
 #include <algorithm>
+#include <queue>
 
 
 
@@ -138,5 +139,43 @@ void Automata::merge(const Automata& other) {
 void Automata::setLastAcceptor(State* acceptor) {
 	last_acceptor = std::unordered_set<State*>{acceptor};
 }
+
+unordered_set<State*> Automata::getAllStates() const{
+    unordered_set<State*> visited; // To keep track of visited states
+    queue<State*> to_visit;        // Queue for BFS traversal
+
+    // Start from the initial state
+    to_visit.push(initial_state);
+    visited.insert(initial_state);
+
+    while (!to_visit.empty()) {
+        State* current = to_visit.front();
+        to_visit.pop();
+
+        // Get all transitions (both normal and epsilon)
+        unordered_map<char, vector<State*>> transitions = current->getTransitions();
+        vector<State*> epsilon_transitions = current->getEpsilonTransitions();
+
+        // Add all reachable states
+        for (const auto& [input, states] : transitions) {
+            for (State* state : states) {
+                if (visited.find(state) == visited.end()) {
+                    visited.insert(state);
+                    to_visit.push(state);
+                }
+            }
+        }
+
+        for (State* state : epsilon_transitions) {
+            if (visited.find(state) == visited.end()) {
+                visited.insert(state);
+                to_visit.push(state);
+            }
+        }
+    }
+
+    return visited; // Return all visited states
+}
+
 
 

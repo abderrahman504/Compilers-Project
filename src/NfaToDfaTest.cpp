@@ -1,6 +1,7 @@
 #include "Automata.h"
 #include "State.h"
-
+#include "DFAConstructor.h"
+#include <iostream>
 
 void nfa_to_dfa_test()
 {
@@ -23,6 +24,35 @@ void nfa_to_dfa_test()
 	Automata* nfa = new Automata(initial_state);
 
 	// Add code that builds a DFA from the NFA below
+    DFAConstructor dfaConstructor;
+    Automata dfa = dfaConstructor.constructDFA(*nfa);
+    dfa = dfaConstructor.minimizeDFA(dfa);
 
+	// Print the DFA
+    unordered_set<State*> dfaStates = dfa.getAllStates();  // Get all the DFA states
+    std::cout << dfaStates.size() << " DFA states created." << std::endl;
+    std::cout << "DFA States and Transitions:" << std::endl;
+
+    for (State* state : dfaStates) {
+        std::cout << "State: " << state->getName() << std::endl;
+        unordered_map<char, vector<State*>> transitions = state->getTransitions();
+        
+        for (auto& transition : transitions) {
+            char input = transition.first;
+            vector<State*> nextStates = transition.second;
+            
+            std::cout << "  On input '" << input << "' transitions to: ";
+            for (State* nextState : nextStates) {
+                std::cout << nextState->getName() << " ";
+            }
+            std::cout << std::endl;
+        }
+
+        if (state->isAcceptor()) {
+            std::cout << "  This state is an acceptor state." << std::endl;
+        }
+    }
 }
+
+
 

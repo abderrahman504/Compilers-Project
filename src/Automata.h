@@ -100,7 +100,9 @@ class Automata
  * @param other the other NFA to be merged with
  */
 	void merge(const Automata &other);
-	
+
+	// Returns all states in the automata
+	unordered_set<State*> getAllStates() const;
 };
 
 #endif
