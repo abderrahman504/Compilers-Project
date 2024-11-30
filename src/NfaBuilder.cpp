@@ -26,6 +26,7 @@ void NFABuilder::regexToNFA(const std::string& regex, const std::string& name, i
     std::stack<vector<State*>> strays;
     std::stack<State*> initials;
     State* current = createState(false);
+    State* prev = NULL;
     initials.push(current);
     strays.push(vector<State*>());
     for (int i=0; i<regex.size(); i++)
@@ -45,16 +46,24 @@ void NFABuilder::regexToNFA(const std::string& regex, const std::string& name, i
             for (auto stray : strays.top()){
                 stray->addEpsilonTransition(vector<State*>{new_state});
             }
+            current->addEpsilonTransition(vector<State*>{new_state});
+            if (i < regex.size()-1 && regex[i+1] == '*' || regex[i+1] == '+'){
+                i++;
+                new_state->addEpsilonTransition(vector<State*>{initials.top()});
+                if (regex[i] == '*'){
+                    initials.top()->addEpsilonTransition(vector<State*>{new_state});
+                }
+            }
             strays.pop();
             initials.pop();
             current = new_state;
         }
         else if (c == '+'){
-            current->addEpsilonTransition(vector<State*>{initials.top()});
+            current->addEpsilonTransition(vector<State*>{prev});
         }
         else if (c == '*'){
-            current->addEpsilonTransition(vector<State*>{initials.top()});
-            initials.top()->addEpsilonTransition(vector<State*>{current});
+            current->addEpsilonTransition(vector<State*>{prev});
+            prev->addEpsilonTransition(vector<State*>{current});
         }
         else if (c == '|'){
             strays.top().push_back(current);
@@ -67,12 +76,14 @@ void NFABuilder::regexToNFA(const std::string& regex, const std::string& name, i
             // If it's the lambda character...
             if (c == 'L'){
                 State* new_state = createState(false);
-                initials.top()->addEpsilonTransition(vector<State*>{current});
+                current->addEpsilonTransition(vector<State*>{new_state});
+                current = new_state;
             }
             // Anything else...
             else{
                 State* new_state = createState(false);
                 current->addTransition(c, vector<State*>{new_state});
+                prev = current;
                 current = new_state;
             }
         }
@@ -88,6 +99,7 @@ void NFABuilder::regexToNFA(const std::string& regex, const std::string& name, i
                     current->addTransition(x, vector<State*>{new_state});
                 }
             }
+            prev = current;
             current = new_state;
         }
     }
@@ -104,6 +116,7 @@ void NFABuilder::regexToNFA(const std::string& regex, const std::string& name, i
     for (auto stray : strays.top()){
         stray->addEpsilonTransition(vector<State*>{final});
     }
+    current->addEpsilonTransition(vector<State*>{final});
     out_initial = &initials.top();
     out_acceptor = &final;
 }
