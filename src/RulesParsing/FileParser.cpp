@@ -39,14 +39,11 @@ void FileParser::parseFile(const string& filePath) {
             }
         } else if (std::regex_match(line, match, punctuationRegex)) {
             // Punctuation
-            // PUNTUATIONS SHOULD AUTOMATICALLY INCLUDE ' ' AND '\n' SO AN NFA CAN SKIP THEM
             stringstream ss(match[1]);
             string punctuation;
             while (std::getline(ss, punctuation, ' ')) {
                 punctuations.push_back(punctuation);
             }
-            punctuations.push_back(" ");
-            punctuations.push_back("\n");
         }
     }
 
