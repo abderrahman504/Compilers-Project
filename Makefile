@@ -1,4 +1,4 @@
-OBJ_FILES := build/main.o build/Automata.o build/State.o  build/DFAConstructor.o build/RulesParsing/FileParser.o
+OBJ_FILES := build/main.o build/Automata.o build/State.o build/NfaBuilder.o build/DFAConstructor.o build/RulesParsing/FileParser.o 
 
 EXECUTABLE_NAME := project
 

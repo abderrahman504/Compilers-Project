@@ -7,40 +7,7 @@
 #include <vector>
 #include <iostream>
 
-NFABuilder::NFABuilder(const FileParser& parser) : stateCounter(0),  fullNFA(createState()) {
-    std::cout << "\nInside the Builder Constructor";
-    std::vector<Automata> nfas;
-    std::cout << "\nCreated nfas stack\n";
-
-    // Convert regular expressions to NFAs
-    const auto& regularExpressions = parser.getRegularExpressions();
-
-    for (const auto& [name, regex] : regularExpressions) {
-        std::cout <<name <<" : " << regex ;
-        Automata nfa = regexToNFA(regex);
-        nfas.push_back(nfa);
-    }
-    std::cout << "Converted Regular Expressions to NFA";
-
-    // Convert keywords into NFAs
-    const auto& keywords = parser.getKeywords();
-    for (const auto& keyword : keywords) {
-        Automata keywordNFA = regexToNFA(keyword);
-        nfas.push_back(keywordNFA);
-    }
-    std::cout << "Converted Keywords to NFA";
-
-    // Convert punctuations into NFAs
-    const auto& punctuations = parser.getPunctuations();
-    for (const auto& punctuation : punctuations) {
-        Automata punctuationNFA = regexToNFA(punctuation);
-        nfas.push_back(punctuationNFA);
-    }
-    std::cout << "Converted Punctuations to NFA";
-
-    // Combine all NFAs into a single NFA
-    fullNFA = combineNFAs(nfas);
-}
+NFABuilder::NFABuilder() : stateCounter(0) {}
 
 
 State* NFABuilder::createState(bool isAcceptor, int acceptorPriority) {
@@ -48,282 +15,133 @@ State* NFABuilder::createState(bool isAcceptor, int acceptorPriority) {
     return new State(stateName, isAcceptor, acceptorPriority);
 }
 
-Automata NFABuilder::buildNFA(const std::string& regex) {
-    return regexToNFA(regex);
-}
 
-Automata NFABuilder::combineNFAs(const std::vector<Automata>& nfas) {
-    State* startState = createState();
-    Automata combined(startState);
-
-    for (const auto& nfa : nfas) {
-        startState->addTransition('\0', std::vector<State*>({nfa.getInitialState()}));
-    }
-
-    return combined;
-}
 /**
  * @brief Builds a Non-Deterministic Finite Automaton (NFA) from a regular expression using Thomson's Construction.
  * 
  * @param regex The regular expression to convert into an NFA.
  * @return Automata The constructed NFA representing the given regular expression.
  */
-Automata NFABuilder::regexToNFA(const std::string& regex) {
-    std::stack<Automata> nfaStack;
-    std::string postfix = toPostfix(regex);
-    bool isEscaped = false;  // Track whether the current character is escaped
-    std::cout <<"\n"<<postfix<<"\n";
-    for (size_t i = 0; i < postfix.size(); ++i) {
-        char c = postfix[i];
-
-        if (isEscaped) {
-            // Handle escaped symbols (e.g., \*, \+)
-            if (c == '*') {
-                // Literal multiplication (*)
-                State* start = createState();
-                State* accept = createState(true);
-                start->addTransition('*', {accept});
-
-                Automata singleCharNFA(start);
-                singleCharNFA.setLastAcceptor(accept);
-
-                nfaStack.push(singleCharNFA);
-                std::cout << "Created NFA for MulOP";
-            } else if (c == '+') {
-                // Literal addition (+)
-                State* start = createState();
-                State* accept = createState(true);
-                start->addTransition('+', {accept});
-
-                Automata singleCharNFA(start);
-                singleCharNFA.setLastAcceptor(accept);
-
-                nfaStack.push(singleCharNFA);
-            } else if (c == '=' && i + 2 < postfix.size() && postfix[i + 2] == '=') {
-                // Handle \=\= (equals)
-                i+=2; // Skip next '\='
-                State* start = createState();
-                State* intermediate = createState();
-                State* accept = createState(true);
-                start->addTransition('=', {intermediate});  // Treat '==' as a literal
-                intermediate->addTransition('=',{accept});
-                Automata singleCharNFA(start);
-                singleCharNFA.setLastAcceptor(accept);
-
-                nfaStack.push(singleCharNFA);
-                std::cout << "Created NFA for RelOp ==\n"; 
-            } else {
-                throw std::runtime_error(std::string("Unknown escaped character: \\") + c);
-            }
-            std::cout<<"\nReset Escape Flag\n";
-            isEscaped = false;  // Reset escape flag
-
-        }else if (c == '!' && i + 2 < postfix.size() && postfix[i + 2] == '=') {
-            // Handle !\= (not equals)
-            i+=2; // Skip next '\='
-            State* start = createState();
-            State* intermediate = createState();
-            State* accept = createState(true);
-            start->addTransition('!', {intermediate});  // Treat '!=' as a literal
-            intermediate->addTransition('=',{accept});
-
-            Automata singleCharNFA(start);
-            singleCharNFA.setLastAcceptor(accept);
-
-            nfaStack.push(singleCharNFA);
-            std::cout << "Created NFA for RelOp !=\n"; 
-            }  else if (c == '>' && i + 2 < postfix.size() && postfix[i + 2] == '=') {
-            // Handle >\= (greater than or equal)
-            i+=2; // Skip next '\='
-            State* start = createState();
-            State* intermediate = createState();
-            State* accept = createState(true);
-            start->addTransition('>', {intermediate});  // Treat '>=' as a literal
-            intermediate->addTransition('=',{accept});
-
-            Automata singleCharNFA(start);
-            singleCharNFA.setLastAcceptor(accept);
-
-            nfaStack.push(singleCharNFA);
-            std::cout << "Created NFA for RelOp >=\n";
-            } else if (c == '<' && i + 2 < postfix.size() && postfix[i + 2] == '=') {
-            // Handle <\= (less than or equal)
-            i+=2; // Skip next '\='
-            State* start = createState();
-            State* intermediate = createState();
-            State* accept = createState(true);
-            start->addTransition('<', {intermediate});  // Treat '<=' as a literal
-            intermediate->addTransition('=',{accept});
-            Automata singleCharNFA(start);
-            singleCharNFA.setLastAcceptor(accept);
-
-            nfaStack.push(singleCharNFA);
-            std::cout << "Created NFA for RelOp <=\n"; // Debug output
-        } 
-        else if (c == '\\') {
-            // Handle escape character
-            isEscaped = true;
-            continue;
-        } else if (isOperator(c)) {
-            std::cout<<"\n" << c;
-            // Handle regex operators
-            if (c == '|') {
-                if (nfaStack.size() < 2) {
-                    throw std::runtime_error("Malformed regex: '|' requires two operands.");
-                }
-                Automata nfa1 = nfaStack.top(); nfaStack.pop();
-                Automata nfa2 = nfaStack.top(); nfaStack.pop();
-
-                State* start = createState();
-                State* accept = createState(true);
-                start->addEpsilonTransition({nfa1.getInitialState(), nfa2.getInitialState()});
-                nfa1.getLastAcceptor()->addEpsilonTransition({accept});
-                nfa2.getLastAcceptor()->addEpsilonTransition({accept});
-                Automata result = Automata(start);
-                nfaStack.push(result);
-            } else if (c == '*') {
-                // Kleene closure
-                if (nfaStack.empty()) {
-                    throw std::runtime_error("Malformed regex: '*' requires one operand.");
-                }
-                Automata nfa = nfaStack.top(); nfaStack.pop();
-
-                State* start = createState();
-                State* accept = createState(true);
-
-                start->addEpsilonTransition({nfa.getInitialState(), accept});
-                nfa.getLastAcceptor()->addEpsilonTransition({nfa.getInitialState(), accept});
-
-                Automata result(start);
-                result.setLastAcceptor({accept});
-                nfaStack.push(result);
-            } else if (c == '+') {
-                // Positive closure
-                if (nfaStack.empty()) {
-                    throw std::runtime_error("Malformed regex: '+' requires one operand.");
-                }
-                // std::cout << nfaStack.size();
-                Automata nfa = nfaStack.top(); nfaStack.pop();
-
-                State* start = createState();
-                State* accept = createState(true);
-
-                start->addEpsilonTransition({nfa.getInitialState()});
-                std::cout<<"before last acceptor";
-                State* beforeLastAcceptor = nfa.getLastAcceptor();
-                State* nfaInitialSate = nfa.getInitialState();
-                beforeLastAcceptor->addEpsilonTransition({nfaInitialSate,accept});
-                std::cout<<"after last acceptor";
-
-                Automata result(start);
-                nfaStack.push(result);
-                std::cout << "\nOne or More\n";
-            }
-        } else {
-            // Handle literals (non-operator characters)
-            std::cout<<"\n"<<c;
-            State* start = createState();
-            State* accept = createState(true);
-            start->addTransition(c, {accept});
-
-            Automata singleCharNFA(start);
-            singleCharNFA.setLastAcceptor(accept);
-
-            nfaStack.push(singleCharNFA);
-
-        }
-    }
-
-    if (nfaStack.size() != 1) {
-        throw std::runtime_error("Malformed regex: too many operands.");
-    }
-
-    return nfaStack.top();
-}
-
-
-std::string NFABuilder::toPostfix(const std::string& regex) {
-    std::stack<char> operatorStack;
-    std::string postfix;
-    bool escapeNext = false;
-
-    // Helper to determine if a character is an operand
-    auto isOperand = [](char c) {
-        return std::isalnum(c) || c == '/' || c == '-' || c == '=' || c == '>' || c =='<' || c == '!'; // Alphanumeric characters are operands
-    };
-
-    // Helper to define precedence of operators
-    auto precedence = [](char op) {
-        switch (op) {
-            case '*': return 3; // Kleene star
-            case '+': return 3; // Positive closure
-            case '.': return 2; // Concatenation
-            case '|': return 1; // Alternation
-            default: return 0;
-        }
-    };
-
-    // Helper to check if a character is an operator
-    auto isOperator = [](char c) {
-        return c == '*' || c == '+' || c == '.' || c == '|';
-    };
-
-    for (size_t i = 0; i < regex.size(); ++i) {
+void NFABuilder::regexToNFA(const std::string& regex, const std::string& name, int priority, State** out_initial, State** out_acceptor) {
+    std::stack<vector<State*>> strays;
+    std::stack<State*> initials;
+    State* current = createState(false);
+    initials.push(current);
+    strays.push(vector<State*>());
+    for (int i=0; i<regex.size(); i++)
+    {
         char c = regex[i];
-
-        if (escapeNext) {
-            // Treat escaped characters (\+ or \*) as literals
-            postfix += c;
-            escapeNext = false;
-            continue;
+        // Ignore blanks
+        if (c == ' ') continue;
+        // Handle all special characters
+        if (c == '('){
+            initials.push(createState(false));
+            current->addEpsilonTransition(vector<State*>{initials.top()});
+            strays.push(vector<State*>());
+            current = initials.top();
         }
-
-        if (c == '\\') {
-            escapeNext = true; // Escape the next character
-            postfix += c;
-        } else if (isOperand(c)) {
-            postfix += c; // Append operands directly to the postfix string
-        } else if (c == '(') {
-            operatorStack.push(c); // Push '(' to the stack
-        } else if (c == ')') {
-            // Pop until '(' is encountered
-            while (!operatorStack.empty() && operatorStack.top() != '(') {
-                postfix += operatorStack.top();
-                operatorStack.pop();
+        else if (c == ')'){
+            State* new_state = createState(false);
+            for (auto stray : strays.top()){
+                stray->addEpsilonTransition(vector<State*>{new_state});
             }
-            if (!operatorStack.empty() && operatorStack.top() == '(') {
-                operatorStack.pop(); // Remove the '('
+            strays.pop();
+            initials.pop();
+            current = new_state;
+        }
+        else if (c == '+'){
+            current->addEpsilonTransition(vector<State*>{initials.top()});
+        }
+        else if (c == '*'){
+            current->addEpsilonTransition(vector<State*>{initials.top()});
+            initials.top()->addEpsilonTransition(vector<State*>{current});
+        }
+        else if (c == '|'){
+            strays.top().push_back(current);
+            current = initials.top();
+        }
+        // Handle escaped characters
+        else if (c == '\\'){ 
+            i++;
+            c = regex[i];
+            // If it's the lambda character...
+            if (c == 'L'){
+                State* new_state = createState(false);
+                initials.top()->addEpsilonTransition(vector<State*>{current});
             }
-        } else if (isOperator(c)) {
-            // Pop operators of higher or equal precedence
-            while (!operatorStack.empty() &&
-                   precedence(operatorStack.top()) >= precedence(c)) {
-                postfix += operatorStack.top();
-                operatorStack.pop();
+            // Anything else...
+            else{
+                State* new_state = createState(false);
+                current->addTransition(c, vector<State*>{new_state});
+                current = new_state;
             }
-            operatorStack.push(c); // Push the current operator
+        }
+        // Handle normal input
+        else{
+            State* new_state = createState(false);
+            current->addTransition(c, vector<State*>{new_state});
+            // If the next character is - then this is a range
+            if(i < regex.size()-1 && regex[i+1] == '-'){
+                i += 2;
+                char end = regex[i];
+                for(char x = c+1; x <= end; x++){
+                    current->addTransition(x, vector<State*>{new_state});
+                }
+            }
+            current = new_state;
         }
     }
-
-    // Pop remaining operators
-    while (!operatorStack.empty()) {
-        postfix += operatorStack.top();
-        operatorStack.pop();
+    // At this point both initials and strays stacks should be of size 1
+    if (initials.size() != 1){
+        std::cerr << "Error: initials stack was of size " << initials.size() << " after making " << name << std::endl;
+    }
+    if (strays.size() != 1){
+        std::cerr << "Error: strays stack was of size " << strays.size() << " after making " << name << std::endl;
     }
 
-    return postfix;
+    // Add the final state and connect all strays to it
+    State* final = new State(name, true, priority);
+    for (auto stray : strays.top()){
+        stray->addEpsilonTransition(vector<State*>{final});
+    }
+    out_initial = &initials.top();
+    out_acceptor = &final;
 }
 
 
+Automata NFABuilder::getFullNFA(unordered_map<string, string> regularExpressions, vector<string> keywords, vector<string> punctuations)
+{
+    std::vector<State*> all_initials;
+    for (auto [name, regex] : regularExpressions) {
+        std::cout <<name <<" : " << regex;
+        State* initial;
+        regexToNFA(regex, name, 0, &initial, nullptr);
+        all_initials.push_back(initial);
+    }
+    std::cout << "Converted Regular Expressions to NFA";
 
+    // Convert keywords into NFAs
+    for (auto keyword : keywords) {
+        State* initial;
+        regexToNFA(keyword, keyword, 1, &initial, nullptr);
+        all_initials.push_back(initial);
+    }
+    std::cout << "Converted Keywords to NFA";
 
-bool NFABuilder::isOperator(char c) {
-    return c == '|' || c == '*' || c == '+' || c == '(' || c == ')';
+    // Convert punctuations into NFAs
+    for (auto punctuation : punctuations) {
+        State* initial;
+        regexToNFA(punctuation, punctuation, 1, &initial, nullptr);
+        all_initials.push_back(initial);
+    }
+    std::cout << "Converted Punctuations to NFA";
+
+    // Combine all NFAs into a single NFA
+    State* startState = new State("Start", false, -1);
+    for (auto initial : all_initials) {
+        startState->addEpsilonTransition(std::vector<State*>({initial}));
+    }
+
+    Automata nfa = Automata(startState);
+    return nfa;
 }
-
-int NFABuilder::precedence(char op) {
-    if (op == '*') return 3;
-    if (op == '|') return 1;
-    return 0;
-}
-const Automata& NFABuilder::getFullNFA(){ return fullNFA;}
