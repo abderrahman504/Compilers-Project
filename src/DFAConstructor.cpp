@@ -240,4 +240,38 @@ Automata DFAConstructor::minimizeDFA(const Automata& dfa) {
     Automata minimizedDFA(minimizedInitial);
     return minimizedDFA;
 }
+/**
+ * @brief Prints the transition table of @param dfa.
+ * 
+ * @param dfa 
+ */
+void DFAConstructor::printTransitionTable(const Automata &dfa)
+{
+    // Get all states of the DFA
+    unordered_set<State *> allStates = dfa.getAllStates();
 
+    // Print the header
+    cout << "State\tTransition (Input -> Target State)" << endl;
+    
+    // Iterate through each state and print its transitions
+    for (State *state : allStates)
+    {
+        cout << state->getName() << "\t";
+        
+        // Print transitions for the state
+        bool first = true;
+        for (auto &transition : state->getTransitions())
+        {
+            if (!first)
+            {
+                cout << ", "; // Add a separator between multiple transitions
+            }
+            first = false;
+            
+            // Print transition: input -> target state
+            cout << transition.first << " -> " << transition.second.front()->getName(); // Assuming only one target state per transition for simplicity
+        }
+
+        cout << endl;
+    }
+}

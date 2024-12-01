@@ -8,8 +8,10 @@
 
 class DFAConstructor {
 public:
-    Automata constructDFA(const Automata& nfa);
+    Automata constructDFA(const Automata &nfa);
     Automata minimizeDFA(const Automata& dfa);
+    void printTransitionTable(const Automata &dfa);
+
 private:
     std::set<State*> epsilonClosure(const std::set<State*>& states);
     bool containsAcceptor(const std::set<State*>& states);
