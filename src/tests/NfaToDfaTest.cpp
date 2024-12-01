@@ -26,7 +26,7 @@ void nfa_to_dfa_test()
 	//Automata* nfa = new Automata(initial_state);
     FileParser parser;
 	parser.parseFile("../example_rules.txt");
-	NFABuilder nfaBuilder;
+	NfaBuilder nfaBuilder;
 	Automata nfa = nfaBuilder.getFullNFA(parser.getRegularExpressions(), parser.getKeywords(), parser.getPunctuations());
 	// Add code that builds a DFA from the NFA below
     Automata* NFA = &nfa;
