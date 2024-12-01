@@ -4,6 +4,7 @@
 #include <queue>
 #include <set>
 #include <algorithm>
+#include <iostream>
 
 Automata DFAConstructor::constructDFA(const Automata &nfa)
 {
@@ -36,7 +37,38 @@ Automata DFAConstructor::constructDFA(const Automata &nfa)
     // Get the epsilon-closure of the NFA's initial state
     State *nfaInitial = nfa.getInitialState();
     set<State *> startSet = epsilonClosure({nfaInitial});
-    State *dfaInitial = new State("q0", containsAcceptor(startSet), highestPriority(startSet));
+    // Determine the name of the DFA's initial state
+    string initialStateName;
+    vector<State *> acceptorStates;
+    for (State *state : startSet)
+    {
+        if (state->isAcceptor())
+        {
+            acceptorStates.push_back(state);
+        }
+    }
+
+    if (!acceptorStates.empty())
+    {
+        // Sort acceptor states by priority to select the one with the highest priority
+        auto highestPriorityState = *max_element(
+            acceptorStates.begin(),
+            acceptorStates.end(),
+            [](State *a, State *b)
+            {
+                return a->getAcceptorPriority() < b->getAcceptorPriority();
+            });
+
+        initialStateName = highestPriorityState->getName();
+    }
+    else
+    {
+        // If no acceptor states, use the default "q0"
+        initialStateName = "q0";
+    }
+
+    // Create the DFA's initial state
+    State *dfaInitial = new State(initialStateName, containsAcceptor(startSet), highestPriority(startSet));
     dfaStates[startSet] = dfaInitial;
 
     unprocessedStates.push(startSet);
@@ -72,7 +104,36 @@ Automata DFAConstructor::constructDFA(const Automata &nfa)
             if (dfaStates.find(epsilonClosureSet) == dfaStates.end())
             {
                 // Create a new DFA state for this set of NFA states
-                string stateName = "q" + to_string(dfaStates.size());
+                // Determine the name of the new DFA state based on your naming rules
+                string stateName;
+
+                vector<State *> acceptorStates;
+                for (State *state : epsilonClosureSet)
+                {
+                    if (state->isAcceptor())
+                    {
+                        acceptorStates.push_back(state);
+                    }
+                }
+
+                if (!acceptorStates.empty())
+                {
+                    // Sort acceptor states by priority to select the one with the highest priority
+                    auto highestPriorityState = *max_element(
+                        acceptorStates.begin(),
+                        acceptorStates.end(),
+                        [](State *a, State *b)
+                        {
+                            return a->getAcceptorPriority() < b->getAcceptorPriority();
+                        });
+
+                    stateName = highestPriorityState->getName();
+                }
+                else
+                {
+                    // If no acceptor states, use the default "q" naming
+                    stateName = "q" + to_string(dfaStates.size());
+                }
                 State *newDFAState = new State(
                     stateName,
                     containsAcceptor(epsilonClosureSet),
@@ -141,53 +202,70 @@ int DFAConstructor::highestPriority(const set<State *> &states)
     return maxPriority;
 }
 
-Automata DFAConstructor::minimizeDFA(const Automata& dfa) {
+Automata DFAConstructor::minimizeDFA(const Automata &dfa)
+{
     // Step 1: Separate states into acceptor and non-acceptor partitions
-    unordered_set<State*> acceptorStates;
-    unordered_set<State*> nonAcceptorStates;
-    unordered_set<State*> allStates = dfa.getAllStates();
-    for (State* state : allStates) {
-        if (state->isAcceptor()) {
+    unordered_set<State *> acceptorStates;
+    unordered_set<State *> nonAcceptorStates;
+    unordered_set<State *> allStates = dfa.getAllStates();
+    for (State *state : allStates)
+    {
+        if (state->isAcceptor())
+        {
             acceptorStates.insert(state);
-        } else {
+        }
+        else
+        {
             nonAcceptorStates.insert(state);
         }
     }
 
     // Initialize partitions
-    vector<unordered_set<State*>> partitions;
-    if (!acceptorStates.empty()) partitions.push_back(acceptorStates);
-    if (!nonAcceptorStates.empty()) partitions.push_back(nonAcceptorStates);
+    vector<unordered_set<State *>> partitions;
+    if (!acceptorStates.empty())
+        partitions.push_back(acceptorStates);
+    if (!nonAcceptorStates.empty())
+        partitions.push_back(nonAcceptorStates);
 
     // Step 2: Iteratively refine partitions
     bool updated = true;
-    while (updated) {
+    while (updated)
+    {
         updated = false;
-        vector<unordered_set<State*>> newPartitions;
+        vector<unordered_set<State *>> newPartitions;
 
-        for (const auto& partition : partitions) {
-            struct MapHash {
-                size_t operator()(const unordered_map<char, int>& m) const {
+        for (const auto &partition : partitions)
+        {
+            struct MapHash
+            {
+                size_t operator()(const unordered_map<char, int> &m) const
+                {
                     size_t hash = 0;
-                    for (const auto& [key, value] : m) {
+                    for (const auto &[key, value] : m)
+                    {
                         hash ^= std::hash<char>()(key) ^ std::hash<int>()(value);
                     }
                     return hash;
                 }
             };
 
-            unordered_map<unordered_map<char, int>, unordered_set<State*>, MapHash> refinedGroups;
+            unordered_map<unordered_map<char, int>, unordered_set<State *>, MapHash> refinedGroups;
 
-            for (State* state : partition) {
+            for (State *state : partition)
+            {
                 unordered_map<char, int> transitionGroup;
-                for (auto& [input, nextStates] : state->getTransitions()) {
-                    if (!nextStates.empty()) {
+                for (auto &[input, nextStates] : state->getTransitions())
+                {
+                    if (!nextStates.empty())
+                    {
                         // Find the partition index for the target state
                         auto it = find_if(partitions.begin(), partitions.end(),
-                            [&nextStates](const unordered_set<State*>& p) {
-                                return p.find(nextStates[0]) != p.end();
-                            });
-                        if (it != partitions.end()) {
+                                          [&nextStates](const unordered_set<State *> &p)
+                                          {
+                                              return p.find(nextStates[0]) != p.end();
+                                          });
+                        if (it != partitions.end())
+                        {
                             transitionGroup[input] = distance(partitions.begin(), it);
                         }
                     }
@@ -196,8 +274,10 @@ Automata DFAConstructor::minimizeDFA(const Automata& dfa) {
             }
 
             // Add refined groups to the new partitions
-            for (auto& [_, group] : refinedGroups) {
-                if (group.size() < partition.size()) updated = true;
+            for (auto &[_, group] : refinedGroups)
+            {
+                if (group.size() < partition.size())
+                    updated = true;
                 newPartitions.push_back(group);
             }
         }
@@ -206,44 +286,79 @@ Automata DFAConstructor::minimizeDFA(const Automata& dfa) {
     }
 
     // Step 3: Construct minimized DFA
-    unordered_map<State*, State*> stateMapping;
-    vector<State*> minimizedStates;
+    unordered_map<State *, State *> stateMapping;
+    vector<State *> minimizedStates;
 
-    for (const auto& partition : partitions) {
-        // Create a representative state for each partition
-        State* representative = *partition.begin();
-        string name = "q" + to_string(minimizedStates.size());
-        State* newState = new State(name, representative->isAcceptor(), representative->getAcceptorPriority());
+    for (const auto &partition : partitions)
+    {
+        // Determine the name of the new minimized state based on your naming rules
+        string stateName;
+
+        vector<State *> acceptorStates;
+        for (State *state : partition)
+        {
+            if (state->isAcceptor())
+            {
+                acceptorStates.push_back(state);
+            }
+        }
+
+        if (!acceptorStates.empty())
+        {
+            // Sort acceptor states by priority to select the one with the highest priority
+            auto highestPriorityState = *max_element(
+                acceptorStates.begin(),
+                acceptorStates.end(),
+                [](State *a, State *b)
+                {
+                    return a->getAcceptorPriority() < b->getAcceptorPriority();
+                });
+            stateName = highestPriorityState->getName();
+        }
+        else
+        {
+            // If no acceptor states, use the default "q" naming
+            stateName = "q" + to_string(minimizedStates.size());
+        }
+
+        // Create a representative state for this partition
+        State *representative = *partition.begin();
+        State *newState = new State(stateName, representative->isAcceptor(), representative->getAcceptorPriority());
         minimizedStates.push_back(newState);
 
         // Map old states in the partition to the new state
-        for (State* oldState : partition) {
+        for (State *oldState : partition)
+        {
             stateMapping[oldState] = newState;
         }
     }
 
     // Add transitions to minimized states
-    for (State* state : minimizedStates) {
+    for (State *state : minimizedStates)
+    {
         auto it = find_if(stateMapping.begin(), stateMapping.end(),
-            [state](const auto& pair) { return pair.second == state; });
-        State* originalState = it->first;
+                          [state](const auto &pair)
+                          { return pair.second == state; });
+        State *originalState = it->first;
 
-        for (auto& [input, nextStates] : originalState->getTransitions()) {
-            if (!nextStates.empty()) {
+        for (auto &[input, nextStates] : originalState->getTransitions())
+        {
+            if (!nextStates.empty())
+            {
                 state->addTransition(input, {stateMapping[nextStates[0]]});
             }
         }
     }
 
     // Return the minimized DFA
-    State* minimizedInitial = stateMapping[dfa.getInitialState()];
+    State *minimizedInitial = stateMapping[dfa.getInitialState()];
     Automata minimizedDFA(minimizedInitial);
     return minimizedDFA;
 }
 /**
  * @brief Prints the transition table of @param dfa.
- * 
- * @param dfa 
+ *
+ * @param dfa
  */
 void DFAConstructor::printTransitionTable(const Automata &dfa)
 {
@@ -251,27 +366,27 @@ void DFAConstructor::printTransitionTable(const Automata &dfa)
     unordered_set<State *> allStates = dfa.getAllStates();
 
     // Print the header
-    cout << "State\tTransition (Input -> Target State)" << endl;
-    
+    std::cout << "State\tTransition (Input -> Target State)" << std::endl;
+
     // Iterate through each state and print its transitions
     for (State *state : allStates)
     {
-        cout << state->getName() << "\t";
-        
+        std::cout << state->getName() << "\t";
+
         // Print transitions for the state
         bool first = true;
         for (auto &transition : state->getTransitions())
         {
             if (!first)
             {
-                cout << ", "; // Add a separator between multiple transitions
+                std::cout << ", "; // Add a separator between multiple transitions
             }
             first = false;
-            
+
             // Print transition: input -> target state
-            cout << transition.first << " -> " << transition.second.front()->getName(); // Assuming only one target state per transition for simplicity
+            std::cout << transition.first << " -> " << transition.second.front()->getName(); // Assuming only one target state per transition for simplicity
         }
 
-        cout << endl;
+        std::cout << std::endl;
     }
 }
