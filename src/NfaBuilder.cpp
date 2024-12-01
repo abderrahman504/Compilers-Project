@@ -3,14 +3,13 @@
 #include <stack>
 #include <unordered_map>
 
-#include "NFABuilder.h"
 #include <vector>
 #include <iostream>
 
-NFABuilder::NFABuilder() : stateCounter(0) {}
+NfaBuilder::NfaBuilder() : stateCounter(0) {}
 
 
-State* NFABuilder::createState(bool isAcceptor, int acceptorPriority) {
+State* NfaBuilder::createState(bool isAcceptor, int acceptorPriority) {
     std::string stateName = "q" + std::to_string(stateCounter++);
     return new State(stateName, isAcceptor, acceptorPriority);
 }
@@ -22,13 +21,14 @@ State* NFABuilder::createState(bool isAcceptor, int acceptorPriority) {
  * @param regex The regular expression to convert into an NFA.
  * @return Automata The constructed NFA representing the given regular expression.
  */
-void NFABuilder::regexToNFA(const std::string& regex, const std::string& name, int priority, State** out_initial, State** out_acceptor) {
+void NfaBuilder::regexToNFA(const std::string &regex, const std::string &name, int priority, State** out_initial, State** out_acceptor) {
     std::stack<vector<State*>> strays;
     std::stack<State*> initials;
     State* current = createState(false);
     State* prev = NULL;
     initials.push(current);
     strays.push(vector<State*>());
+    
     for (int i=0; i<regex.size(); i++)
     {
         char c = regex[i];
@@ -42,21 +42,25 @@ void NFABuilder::regexToNFA(const std::string& regex, const std::string& name, i
             current = initials.top();
         }
         else if (c == ')'){
-            State* new_state = createState(false);
-            for (auto stray : strays.top()){
-                stray->addEpsilonTransition(vector<State*>{new_state});
+            // If there was branching in this bracket then connect all branches to a new state
+            if (!strays.top().size() == 0){
+                State* new_state = createState(false);
+                for (auto stray : strays.top()){
+                    stray->addEpsilonTransition(vector<State*>{new_state});
+                }
+                current->addEpsilonTransition(vector<State*>{new_state});
+                current = new_state;
             }
-            current->addEpsilonTransition(vector<State*>{new_state});
+            // Check if * or + were applied after )
             if (i < regex.size()-1 && regex[i+1] == '*' || regex[i+1] == '+'){
                 i++;
-                new_state->addEpsilonTransition(vector<State*>{initials.top()});
+                current->addEpsilonTransition(vector<State*>{initials.top()});
                 if (regex[i] == '*'){
-                    initials.top()->addEpsilonTransition(vector<State*>{new_state});
+                    initials.top()->addEpsilonTransition(vector<State*>{current});
                 }
             }
             strays.pop();
             initials.pop();
-            current = new_state;
         }
         else if (c == '+'){
             current->addEpsilonTransition(vector<State*>{prev});
@@ -117,21 +121,23 @@ void NFABuilder::regexToNFA(const std::string& regex, const std::string& name, i
         stray->addEpsilonTransition(vector<State*>{final});
     }
     current->addEpsilonTransition(vector<State*>{final});
-    out_initial = &initials.top();
-    out_acceptor = &final;
+    if(out_initial != nullptr)
+        *out_initial = initials.top();
+    if(out_acceptor != nullptr)
+        *out_acceptor = final;
 }
 
 
-Automata NFABuilder::getFullNFA(unordered_map<string, string> regularExpressions, vector<string> keywords, vector<string> punctuations)
+Automata NfaBuilder::getFullNFA(unordered_map<string, string> regularExpressions, vector<string> keywords, vector<string> punctuations)
 {
     std::vector<State*> all_initials;
     for (auto [name, regex] : regularExpressions) {
-        std::cout <<name <<" : " << regex;
+        std::cout <<name <<" : " << regex << '\n';
         State* initial;
         regexToNFA(regex, name, 0, &initial, nullptr);
         all_initials.push_back(initial);
     }
-    std::cout << "Converted Regular Expressions to NFA";
+    std::cout << "Converted Regular Expressions to NFA\n";
 
     // Convert keywords into NFAs
     for (auto keyword : keywords) {
@@ -139,7 +145,7 @@ Automata NFABuilder::getFullNFA(unordered_map<string, string> regularExpressions
         regexToNFA(keyword, keyword, 1, &initial, nullptr);
         all_initials.push_back(initial);
     }
-    std::cout << "Converted Keywords to NFA";
+    std::cout << "Converted Keywords to NFA\n";
 
     // Convert punctuations into NFAs
     for (auto punctuation : punctuations) {
@@ -147,7 +153,7 @@ Automata NFABuilder::getFullNFA(unordered_map<string, string> regularExpressions
         regexToNFA(punctuation, punctuation, 1, &initial, nullptr);
         all_initials.push_back(initial);
     }
-    std::cout << "Converted Punctuations to NFA";
+    std::cout << "Converted Punctuations to NFA\n";
 
     // Combine all NFAs into a single NFA
     State* startState = new State("Start", false, -1);

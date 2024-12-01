@@ -14,7 +14,6 @@ class Scanner
 	bool acceptor_encountered; // whether an acceptor state has been encountered since the last call to nextToken().
 	int input_idx; // Tracks the progress of the automata through the input stream.
 	string input_stream; // The input stream to read from.
-	int input_size; // Size of the input stream.
 
 	public:
 	// Specify the Automata used for scanning input

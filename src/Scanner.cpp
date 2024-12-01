@@ -12,6 +12,7 @@ void Scanner::setInput(string input)
 	input_idx = 0;	
 	acceptor_encountered = false;
 	last_acceptor = NULL;
+	input_stream = input;
 }
 
 string Scanner::nextToken()
@@ -21,7 +22,7 @@ string Scanner::nextToken()
 	int local_acceptor_idx = -1;
 
 	// Keep processing input until the eof or null state is reached
-	while(input_idx < input_size && automata.getCurrentState().size() != 0)
+	while(input_idx < input_stream.size() && automata.getCurrentState().size() != 0)
 	{
 		char c = input_stream[input_idx];
 		automata.consume(c);
@@ -45,7 +46,7 @@ string Scanner::nextToken()
 	auto token_end = acceptor_encountered ? chars.begin()+local_acceptor_idx+1 : chars.end();
 	string token = string(chars.begin(), token_end);
 	automata.reset();
-	input_idx = last_acceptor_idx + 1;
+	input_idx = acceptor_encountered ? last_acceptor_idx + 1 : input_idx;
 	return token;
 }
 
@@ -57,5 +58,5 @@ string Scanner::getLastTokenType()
 
 bool Scanner::isFinished()
 {
-	return input_idx == input_size;
+	return input_idx == input_stream.size();
 }
