@@ -8,7 +8,7 @@ using namespace std;
 
 class Scanner
 {
-	Automata automata = Automata(NULL); // The automata used for scanning input.
+	Automata automata; // The automata used for scanning input.
 	State* last_acceptor; // Stores the last acceptor state(s) encountered since the last call to nextToken().
 	int last_acceptor_idx; // The index in the input stream where the last acceptor state was encountered.
 	bool acceptor_encountered; // whether an acceptor state has been encountered since the last call to nextToken().
