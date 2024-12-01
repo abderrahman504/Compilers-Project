@@ -8,23 +8,38 @@
 #include "DFAConstructor.cpp"
 #include "RulesParsing/FileParser.cpp"
 #include "RulesParsing/FileParser.h"
-#include "tests/test_scanner.cpp"
-
+#include "ProgramAnalyzer.h"
+#include "DFAConstructor.h"
+#include <iostream>
 
 int main(int argv, char **argc) {
-	// FileParser parser;
-	// parser.parseFile("../example_rules.txt");
-	// NFABuilder nfaBuilder;
-	// Automata nfa = nfaBuilder.getFullNFA(parser.getRegularExpressions(), parser.getKeywords(), parser.getPunctuations());
-	nfa_to_dfa_test();
+	// Parse rules file
+	FileParser parser;
+	parser.parseFile("example_rules.txt");
+	
+	// Construct a NFA
+	NfaBuilder builder;
+	Automata nfa = builder.getFullNFA(parser.getRegularExpressions(), parser.getKeywords(), parser.getPunctuations());
+	
+	// Construct a minimal DFA
+	DFAConstructor dfa_constructor;
+	Automata dfa = dfa_constructor.constructDFA(nfa);
+	dfa = dfa_constructor.minimizeDFA(dfa);
 
-	std::string str = ";";
-	char c = str[0];
-	// Run the scanner test
-	scanner_test();
+	// Analyze a program with the automata.
+	std::cout << "Analyses using NFA...\n";
+	Scanner scanner = Scanner(nfa);
+	ProgramAnalyzer analyzer = ProgramAnalyzer(scanner);
+	analyzer.analyzeFile("example_program.txt");
+	
 
+	std::cout << "Analyses using DFA...\n";
+	scanner = Scanner(dfa);
+	analyzer = ProgramAnalyzer(scanner);
+	analyzer.analyzeFile("example_program.txt");
+	
 
+	
 
-	// print
 	return 0;
 }
