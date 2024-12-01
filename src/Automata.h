@@ -45,6 +45,7 @@ class Automata
 
 	public:
 
+	Automata() = default;
 	Automata(State* initial_state);
 	
 	~Automata();

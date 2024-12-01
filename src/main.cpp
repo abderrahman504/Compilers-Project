@@ -8,6 +8,8 @@
 #include "DFAConstructor.cpp"
 #include "RulesParsing/FileParser.cpp"
 #include "RulesParsing/FileParser.h"
+#include "tests/test_scanner.cpp"
+
 
 int main(int argv, char **argc) {
 	// FileParser parser;
@@ -15,6 +17,14 @@ int main(int argv, char **argc) {
 	// NFABuilder nfaBuilder;
 	// Automata nfa = nfaBuilder.getFullNFA(parser.getRegularExpressions(), parser.getKeywords(), parser.getPunctuations());
 	nfa_to_dfa_test();
+
+	std::string str = ";";
+	char c = str[0];
+	// Run the scanner test
+	scanner_test();
+
+
+
 	// print
 	return 0;
 }
