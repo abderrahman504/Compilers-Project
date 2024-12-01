@@ -25,7 +25,7 @@ int main(int argv, char **argc) {
 	DFAConstructor dfa_constructor;
 	Automata dfa = dfa_constructor.constructDFA(nfa);
 	dfa = dfa_constructor.minimizeDFA(dfa);
-
+	dfa_constructor.printTransitionTable(dfa);
 	// Analyze a program with the automata.
 	std::cout << "Analyses using NFA...\n";
 	Scanner scanner = Scanner(nfa);

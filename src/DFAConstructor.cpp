@@ -4,7 +4,9 @@
 #include <queue>
 #include <set>
 #include <algorithm>
-
+#include <iostream>
+#include <iomanip>
+#include <fstream>
 Automata DFAConstructor::constructDFA(const Automata &nfa)
 {
     // Custom hash function for sets of NFA states
@@ -241,37 +243,82 @@ Automata DFAConstructor::minimizeDFA(const Automata& dfa) {
     return minimizedDFA;
 }
 /**
- * @brief Prints the transition table of @param dfa.
+ * @brief Prints the transition table of @param dfa in a tabular format
  * 
  * @param dfa 
  */
-void DFAConstructor::printTransitionTable(const Automata &dfa)
-{
-    // Get all states of the DFA
-    unordered_set<State *> allStates = dfa.getAllStates();
+#include <iomanip> // For setw
 
-    // Print the header
-    cout << "State\tTransition (Input -> Target State)" << endl;
-    
-    // Iterate through each state and print its transitions
-    for (State *state : allStates)
-    {
-        cout << state->getName() << "\t";
-        
-        // Print transitions for the state
-        bool first = true;
-        for (auto &transition : state->getTransitions())
-        {
-            if (!first)
-            {
-                cout << ", "; // Add a separator between multiple transitions
+#include <iomanip>   // For setw
+#include <fstream>   // For ofstream
+
+void DFAConstructor::printTransitionTable(const Automata &dfa) {
+    // Open file stream
+    std::string fileName = "../Transition_table.txt";
+    std::ofstream outFile(fileName);
+    if (!outFile.is_open()) {
+        std::cerr << "Error: Unable to open file " << fileName << " for writing." << std::endl;
+        return;
+    }
+
+    // Get all states and initialize structures
+    unordered_set<State *> allStates = dfa.getAllStates();
+    set<char> allInputs; // To store all possible input characters
+
+    // Determine all possible input characters
+    for (State *state : allStates) {
+        for (auto &transition : state->getTransitions()) {
+            allInputs.insert(transition.first);
+        }
+    }
+
+    // Calculate column widths
+    size_t stateColumnWidth = 15;
+    size_t inputColumnWidth = 10;
+
+    // Write the table header
+    outFile << std::left << std::setw(stateColumnWidth) << "State";
+    for (char input : allInputs) {
+        outFile << std::setw(inputColumnWidth) << input;
+    }
+    outFile << std::endl;
+
+    outFile << std::string(stateColumnWidth + inputColumnWidth * allInputs.size(), '-') << std::endl;
+
+    // Write each state and its transitions
+    for (State *state : allStates) {
+        outFile << std::left << std::setw(stateColumnWidth) << state->getName(); // State name in the first column
+
+        // Get all transitions as a map
+        auto transitions = state->getTransitions();
+
+        // Loop through all inputs in `allInputs`
+        for (char input : allInputs) {
+            // Check if the input exists in the transitions map directly
+            if (transitions.count(input) > 0) {
+                // Retrieve the vector of target states for the input
+                vector<State *> targetStates = transitions[input];
+                
+                // If the vector is not empty, write the first target state
+                if (!targetStates.empty()) {
+                    outFile << std::setw(inputColumnWidth) << targetStates[0]->getName();
+                } else {
+                    // No transitions for this input
+                    outFile << std::setw(inputColumnWidth) << " ";
+                }
+            } else {
+                // No transition for this input
+                outFile << std::setw(inputColumnWidth) << "-";
             }
-            first = false;
-            
-            // Print transition: input -> target state
-            cout << transition.first << " -> " << transition.second.front()->getName(); // Assuming only one target state per transition for simplicity
         }
 
-        cout << endl;
+
+        outFile << std::endl;
     }
+
+    // Close file stream
+    outFile.close();
+    std::cout << "Transition table successfully written to " << fileName << std::endl;
 }
+
+
