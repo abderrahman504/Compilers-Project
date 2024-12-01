@@ -1,11 +1,14 @@
 #include "State.h"
 #include "Automata.h"
+#include "NfaBuilder.h"
 #include "RulesParsing/FileParser.h"
-#include "FileParserTest.cpp"
-
 
 int main(int argv, char **argc) {
-	fileParserTest();
+	FileParser parser;
+	parser.parseFile("example_rules.txt");
+	NFABuilder nfaBuilder;
+	Automata nfa = nfaBuilder.getFullNFA(parser.getRegularExpressions(), parser.getKeywords(), parser.getPunctuations());
 	
+	// print
 	return 0;
 }

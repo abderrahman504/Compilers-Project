@@ -39,14 +39,11 @@ void FileParser::parseFile(const string& filePath) {
             }
         } else if (std::regex_match(line, match, punctuationRegex)) {
             // Punctuation
-            // PUNTUATIONS SHOULD AUTOMATICALLY INCLUDE ' ' AND '\n' SO AN NFA CAN SKIP THEM
             stringstream ss(match[1]);
             string punctuation;
             while (std::getline(ss, punctuation, ' ')) {
                 punctuations.push_back(punctuation);
             }
-            punctuations.push_back(" ");
-            punctuations.push_back("\n");
         }
     }
 
@@ -76,29 +73,29 @@ string FileParser::expandRhs(string rhs)
     // if rhs is referencing any other definitions then substitute them
     rhs = substituteDefinitions(rhs);
 
-    string expanded_rhs = "";
-    int idx = -1;
-    while (++idx < rhs.size())
-    {
-        char c = rhs[idx];
-        // If c is followed by a dash and another character then this is a range of characters
-        if(idx < rhs.size()-2 && rhs[idx+1] == '-'){
-            expanded_rhs += '(';
-            for(char i = c; i <= rhs[idx+2]; i++){
-                expanded_rhs += i;
-                expanded_rhs += '|';
-            }
-            expanded_rhs.pop_back();
-            expanded_rhs += ')';
-            idx += 2;
-            continue;
-        }
-        else{ //Otherwise add the character to the rhs
-            expanded_rhs += c;
-        }
-    }
+    //string expanded_rhs = "";
+    //int idx = -1;
+    //while (++idx < rhs.size())
+    //{
+    //    char c = rhs[idx];
+    //     If c is followed by a dash and another character then this is a range of characters
+    //    if(idx < rhs.size()-2 && rhs[idx+1] == '-'){
+    //        expanded_rhs += '(';
+    //        for(char i = c; i <= rhs[idx+2]; i++){
+    //            expanded_rhs += i;
+    //            expanded_rhs += '|';
+    //        }
+    //        expanded_rhs.pop_back();
+    //        expanded_rhs += ')';
+    //        idx += 2;
+    //        continue;
+    //    }
+    //    else{ //Otherwise add the character to the rhs
+    //        expanded_rhs += c;
+    //    }
+    //}
 
-    return expanded_rhs;
+    return rhs;
 }
 
 string FileParser::substituteDefinitions(string rhs)

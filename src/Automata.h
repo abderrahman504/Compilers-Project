@@ -41,12 +41,6 @@ class Automata
 
 	State* initial_state; // The initial state of the automata.
 	unordered_set<State*> current_states; // The current state(s) this automata is in.
-	unordered_set<State*> last_acceptor; // Stores the last acceptor state(s) encountered since the last call to nextToken().
-	int last_acceptor_idx; // The index in the input stream where the last acceptor state was encountered.
-	bool acceptor_encountered; // whether an acceptor state has been encountered since the last call to nextToken().
-	int input_idx; // Tracks the progress of the automata through the input stream.
-	char* input_stream; // The input stream to read from.
-	int input_size; // Size of the input stream.
 
 
 	public:
@@ -55,52 +49,30 @@ class Automata
 	
 	~Automata();
 	
-	// Resets the automata to the initial state. Progress through the input_stream is unaffected.
+	// Resets the automata to the initial state.
 	void reset();
 
-	// Sets the input that this automata will read from. 
-	// Use nextToken() to tokenize the input until isFinished() is true
-	void setInput(char* input_stream, int size);
-
-	// Reads and returns the next valid token from the input stream. If no valid token is found then the remaining input is returned as an error token.
-	// Use getLastAcceptor() to determine the type of the token returned.
-	string nextToken();
-
-	// Returns the latest acceptor state with highest priority this automata encountered while reading input, or NULL if an invalid token is encountered.
-	State* getLastAcceptor();
-
-	// Returns the index of the last character of the last accepted token in the input.
-	int getLastTokenEnd();
+	// Feeds a single character to the automata.
+	void consume(char c);
 
 	// Returns the current states this automata is in.
 	unordered_set<State*> getCurrentState();
 
-	// Returns true if all input provided by `setInput()` has been processed into tokens.
-	bool isFinished();
 /**
  * @return Automata's initial state.
  * 
  */
     State *getInitialState() const;
-/**
- * @brief Set the Last Acceptor object
- * 
- * @param s state to be the last acceptor state.
- */
-    void setLastAcceptor(State *s);
-    
-    /**
-     * @brief Set the Initial State object
-     *
-     */
-    void setInitialState();
+
 /**
  * @brief merge 2 NFAs together into a single automata
  * 
  * @param other the other NFA to be merged with
  */
 	void merge(const Automata &other);
-	
+
+	// Returns all states in the automata
+	unordered_set<State*> getAllStates() const;
 };
 
 #endif

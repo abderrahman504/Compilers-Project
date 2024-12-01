@@ -46,6 +46,9 @@ class State
 	// Returns all transitions from this state
 	unordered_map<char, vector<State*>> getTransitions();
 
+	// Returns the name of this state
+	string getName();
+
 };
 
 #endif

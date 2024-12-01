@@ -6,22 +6,17 @@
 
 class NFABuilder {
 private:
-    Automata fullNFA;
     int stateCounter;
 
     State* createState(bool isAcceptor = false, int acceptorPriority = -1);
-    Automata buildNFA(const std::string &regex);
-    Automata regexToNFA(const std::string &regex);
-    std::string toPostfix(const std::string &regex);
-    bool isOperator(char c);
-    int precedence(char op);
-    Automata combineNFAs(const std::vector<Automata> &nfas);
+    void regexToNFA(const std::string &regex, const std::string &name, int priority, State** out_initial, State** out_acceptor);
 
 public:
-    NFABuilder(const FileParser& parser);
+    NFABuilder();
 
-    // Getter for the built NFA
-    const Automata& getFullNFA();
+    // Constructs an NFA out of the expressions, keywords, and punctuations
+    Automata getFullNFA(std::unordered_map<std::string, std::string> expressions, std::vector<std::string> keywords, std::vector<std::string> punctuations);
 };
 
 #endif // NFABUILDER_H
+
