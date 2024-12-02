@@ -10,3 +10,14 @@ assign : \=
 [; , \( \) { }] 
 addop : \+ | \- 
 mulop : \* | /
+
+Acceptors:
+id
+{boolean int float} 
+num
+relop
+addop
+mulop
+assign
+{if else while} 
+; , \( \) { }

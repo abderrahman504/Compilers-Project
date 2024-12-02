@@ -204,15 +204,26 @@ int DFAConstructor::highestPriority(const set<State *> &states)
 
 Automata DFAConstructor::minimizeDFA(const Automata &dfa)
 {
-    // Step 1: Separate states into acceptor and non-acceptor partitions
-    unordered_set<State *> acceptorStates;
+    // Predefined acceptor state names
+    vector<string> acceptorTypes = {
+        "id", "boolean", "int", "float", "num", "relop", "addop", "mulop", "assign",
+        "if", "else", "while", ";", ",", "(", ")", "{", "}"};
+
+    // Step 1: Separate states into partitions based on their acceptor type
+    unordered_map<string, unordered_set<State *>> partitionsMap;
     unordered_set<State *> nonAcceptorStates;
     unordered_set<State *> allStates = dfa.getAllStates();
+
     for (State *state : allStates)
     {
         if (state->isAcceptor())
         {
-            acceptorStates.insert(state);
+            string stateName = state->getName();
+            auto it = find(acceptorTypes.begin(), acceptorTypes.end(), stateName);
+            if (it != acceptorTypes.end())
+            {
+                partitionsMap[stateName].insert(state);
+            }
         }
         else
         {
@@ -220,12 +231,18 @@ Automata DFAConstructor::minimizeDFA(const Automata &dfa)
         }
     }
 
-    // Initialize partitions
-    vector<unordered_set<State *>> partitions;
-    if (!acceptorStates.empty())
-        partitions.push_back(acceptorStates);
+    // Add non-acceptor states to partitions
     if (!nonAcceptorStates.empty())
-        partitions.push_back(nonAcceptorStates);
+    {
+        partitionsMap["non-acceptor"] = nonAcceptorStates;
+    }
+
+    // Convert map to vector of partitions for easier processing
+    vector<unordered_set<State *>> partitions;
+    for (const auto &[_, group] : partitionsMap)
+    {
+        partitions.push_back(group);
+    }
 
     // Step 2: Iteratively refine partitions
     bool updated = true;
@@ -355,6 +372,7 @@ Automata DFAConstructor::minimizeDFA(const Automata &dfa)
     Automata minimizedDFA(minimizedInitial);
     return minimizedDFA;
 }
+
 /**
  * @brief Prints the transition table of @param dfa.
  *
