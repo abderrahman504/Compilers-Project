@@ -23,15 +23,18 @@ int main(int argv, char **argc)
 	dfa = dfa_constructor.minimizeDFA(dfa);
 
 	// Analyze a program with the automata.
-	std::cout << "Analyses using NFA...\n";
-	Scanner scanner = Scanner(nfa);
-	ProgramAnalyzer analyzer = ProgramAnalyzer(scanner);
-	analyzer.analyzeFile("example_program.txt");
+	//std::cout << "Analyses using NFA...\n";
+	//Scanner scanner = Scanner(nfa);
+	//ProgramAnalyzer analyzer = ProgramAnalyzer(scanner);
+	//analyzer.analyzeFile("example_program.txt");
 
-	std::cout << "Analyses using DFA...\n";
-	scanner = Scanner(dfa);
-	analyzer = ProgramAnalyzer(scanner);
-	analyzer.analyzeFile("example_program.txt");
+	std::cout << "Analysis using DFA...\n";
+	Scanner scanner2 = Scanner(dfa);
+	ProgramAnalyzer analyzer2 = ProgramAnalyzer(scanner2);
+	analyzer2.analyzeFile("example_program.txt");
+
+	// Print Transition Table
+	dfa_constructor.printTransitionTable(dfa);
 
 	return 0;
 }
