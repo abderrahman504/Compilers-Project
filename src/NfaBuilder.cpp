@@ -132,12 +132,12 @@ Automata NfaBuilder::getFullNFA(unordered_map<string, string> regularExpressions
 {
     std::vector<State*> all_initials;
     for (auto [name, regex] : regularExpressions) {
-        std::cout <<name <<" : " << regex << '\n';
+        //std::cout <<name <<" : " << regex << '\n';
         State* initial;
         regexToNFA(regex, name, 0, &initial, nullptr);
         all_initials.push_back(initial);
     }
-    std::cout << "Converted Regular Expressions to NFA\n";
+    //std::cout << "Converted Regular Expressions to NFA\n";
 
     // Convert keywords into NFAs
     for (auto keyword : keywords) {
@@ -145,7 +145,7 @@ Automata NfaBuilder::getFullNFA(unordered_map<string, string> regularExpressions
         regexToNFA(keyword, keyword, 1, &initial, nullptr);
         all_initials.push_back(initial);
     }
-    std::cout << "Converted Keywords to NFA\n";
+    //std::cout << "Converted Keywords to NFA\n";
 
     // Convert punctuations into NFAs
     for (auto punctuation : punctuations) {
@@ -153,7 +153,7 @@ Automata NfaBuilder::getFullNFA(unordered_map<string, string> regularExpressions
         regexToNFA(punctuation, punctuation, 1, &initial, nullptr);
         all_initials.push_back(initial);
     }
-    std::cout << "Converted Punctuations to NFA\n";
+    //std::cout << "Converted Punctuations to NFA\n";
 
     // Combine all NFAs into a single NFA
     State* startState = new State("Start", false, -1);
