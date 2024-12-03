@@ -150,7 +150,13 @@ Automata NfaBuilder::getFullNFA(unordered_map<string, string> regularExpressions
     // Convert punctuations into NFAs
     for (auto punctuation : punctuations) {
         State* initial;
-        regexToNFA(punctuation, punctuation, 1, &initial, nullptr);
+        // Remove any backslashes from the name first
+        string name = "";
+        for (int i=0; i<punctuation.size(); i++){
+            if(punctuation[i] == '\\') i++;
+            name += punctuation[i];
+        }
+        regexToNFA(punctuation, name, 1, &initial, nullptr);
         all_initials.push_back(initial);
     }
     //std::cout << "Converted Punctuations to NFA\n";
