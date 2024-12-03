@@ -204,38 +204,23 @@ int DFAConstructor::highestPriority(const set<State *> &states)
 
 Automata DFAConstructor::minimizeDFA(const Automata &dfa)
 {
-    // Predefined acceptor state names
-    vector<string> acceptorTypes = {
-        "id", "boolean", "int", "float", "num", "relop", "addop", "mulop", "assign",
-        "if", "else", "while", ";", ",", "(", ")", "{", "}"};
 
-    // Step 1: Separate states into partitions based on their acceptor type
+    // Step 1: Separate states into partitions based on type
     unordered_map<string, unordered_set<State *>> partitionsMap;
-    unordered_set<State *> nonAcceptorStates;
     unordered_set<State *> allStates = dfa.getAllStates();
 
     for (State *state : allStates)
     {
         if (state->isAcceptor())
         {
-            string stateName = state->getName();
-            auto it = find(acceptorTypes.begin(), acceptorTypes.end(), stateName);
-            if (it != acceptorTypes.end())
-            {
-                partitionsMap[stateName].insert(state);
-            }
+            partitionsMap[state->getName()].insert(state);
         }
         else
         {
-            nonAcceptorStates.insert(state);
+            partitionsMap[""].insert(state);
         }
     }
 
-    // Add non-acceptor states to partitions
-    if (!nonAcceptorStates.empty())
-    {
-        partitionsMap["non-acceptor"] = nonAcceptorStates;
-    }
 
     // Convert map to vector of partitions for easier processing
     vector<unordered_set<State *>> partitions;
@@ -245,60 +230,76 @@ Automata DFAConstructor::minimizeDFA(const Automata &dfa)
     }
 
     // Step 2: Iteratively refine partitions
+    
+    // Get the alphabet first
+    unordered_set<char> alphabet;
+    for (auto state : allStates){
+        for (auto [input, _] : state->getTransitions()){
+            alphabet.insert(input);
+        }
+    }
+    
+    // For each partition
+    // hashset<State*> partition
+    // if a partition is of size 1 then skip it.
+    // hashmap<char, int> the partitions that a state goes to for a given input. -1 is the null partition
+    // Compare the hashmaps of each state in a partition. Each group of equal maps is a new partition
+    // For each state in partition
+    
     bool updated = true;
     while (updated)
     {
         updated = false;
         vector<unordered_set<State *>> newPartitions;
 
-        for (const auto &partition : partitions)
+        for (const auto partition : partitions)
         {
-            struct MapHash
-            {
-                size_t operator()(const unordered_map<char, int> &m) const
-                {
-                    size_t hash = 0;
-                    for (const auto &[key, value] : m)
-                    {
-                        hash ^= std::hash<char>()(key) ^ std::hash<int>()(value);
-                    }
-                    return hash;
-                }
-            };
-
-            unordered_map<unordered_map<char, int>, unordered_set<State *>, MapHash> refinedGroups;
-
-            for (State *state : partition)
-            {
-                unordered_map<char, int> transitionGroup;
-                for (auto &[input, nextStates] : state->getTransitions())
-                {
-                    if (!nextStates.empty())
-                    {
-                        // Find the partition index for the target state
-                        auto it = find_if(partitions.begin(), partitions.end(),
-                                          [&nextStates](const unordered_set<State *> &p)
-                                          {
-                                              return p.find(nextStates[0]) != p.end();
-                                          });
-                        if (it != partitions.end())
-                        {
-                            transitionGroup[input] = distance(partitions.begin(), it);
+            if (partition.size() == 1){
+                newPartitions.push_back(partition);
+                continue;
+            }
+            vector<unordered_map<char, int>> transitionGroups;
+            vector<State*> states;
+            for (auto state : partition){
+                states.push_back(state);
+                unordered_map<char, int> map;
+                for (char c : alphabet){
+                    vector<State*> next = state->getTransitions(c);
+                    if (next.size() == 0) map[c] = -1;
+                    else{
+                        // Figure out the index of the partition that next belongs to
+                        for(int i=0; i<partitions.size(); i++){
+                            if (partitions[i].find(next[0]) != partitions[i].end()){
+                                map[c] = i;
+                                break;
+                            }
+                            else if(i == partitions.size()-1){
+                                cout << "Error: Couldn't find a state in any partition during minimization\n";
+                            }
                         }
                     }
                 }
-                refinedGroups[transitionGroup].insert(state);
+                transitionGroups.push_back(map);
             }
 
-            // Add refined groups to the new partitions
-            for (auto &[_, group] : refinedGroups)
-            {
-                if (group.size() < partition.size())
-                    updated = true;
-                newPartitions.push_back(group);
+            // Compare the maps. Identical ones belong to the same partition.
+
+            unordered_set<int> ids_to_skip;
+            for (int i=0; i<states.size(); i++){
+                if (ids_to_skip.find(i) != ids_to_skip.end()) continue;
+                unordered_set<State*> new_partition({states[i]});
+                ids_to_skip.insert(i);
+                for (int j = i+1; j<states.size(); j++){
+                    if (ids_to_skip.find(j) != ids_to_skip.end()) continue;
+                    if (transitionGroups[i] == transitionGroups[j]){
+                        new_partition.insert(states[j]);
+                        ids_to_skip.insert(j);
+                    }
+                }
+                newPartitions.push_back(new_partition);
             }
         }
-
+        if (newPartitions.size() > partitions.size()) updated = true;
         partitions = newPartitions;
     }
 
