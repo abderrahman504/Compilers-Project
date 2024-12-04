@@ -387,9 +387,9 @@ static char *yy_last_accepting_cpos;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 ".\\example.lex"
+#line 1 "example.lex"
 #define INITIAL 0
-#line 4 ".\\example.lex"
+#line 4 "example.lex"
 
 #include <stdio.h>
 
@@ -544,7 +544,7 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 15 ".\\example.lex"
+#line 15 "example.lex"
 
 
 #line 551 "lex.yy.c"
@@ -632,52 +632,52 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 17 ".\\example.lex"
+#line 17 "example.lex"
 {printf("%s\n", yytext);}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 19 ".\\example.lex"
+#line 19 "example.lex"
 {printf("id\n");}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 21 ".\\example.lex"
+#line 21 "example.lex"
 {printf("num\n");}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 24 ".\\example.lex"
+#line 24 "example.lex"
 {printf("relop\n");}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 26 ".\\example.lex"
+#line 26 "example.lex"
 {printf("assign\n");}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 28 ".\\example.lex"
+#line 28 "example.lex"
 {printf("%s\n", yytext);}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 30 ".\\example.lex"
+#line 30 "example.lex"
 {printf("addop\n");}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 32 ".\\example.lex"
+#line 32 "example.lex"
 {printf("mulop\n");}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 34 ".\\example.lex"
+#line 34 "example.lex"
 { }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 36 ".\\example.lex"
+#line 36 "example.lex"
 ECHO;
 	YY_BREAK
 #line 684 "lex.yy.c"
@@ -1566,7 +1566,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 36 ".\\example.lex"
+#line 36 "example.lex"
 
 
 
