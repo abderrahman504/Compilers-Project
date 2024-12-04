@@ -17,6 +17,7 @@ void Scanner::setInput(string input)
 
 string Scanner::nextToken()
 {
+	automata.reset();
 	acceptor_encountered = false;
 	vector<char> chars;
 	int local_acceptor_idx = -1;
@@ -45,7 +46,6 @@ string Scanner::nextToken()
 	// Create a token out of chars
 	auto token_end = acceptor_encountered ? chars.begin()+local_acceptor_idx+1 : chars.end();
 	string token = string(chars.begin(), token_end);
-	automata.reset();
 	input_idx = acceptor_encountered ? last_acceptor_idx + 1 : input_idx;
 	return token;
 }
