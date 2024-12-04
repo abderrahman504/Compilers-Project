@@ -3,11 +3,17 @@
 
 #include "Scanner.h"
 
+struct TableEntry{
+	string symbol;
+	string type;
 
+	TableEntry(std::string symbol, std::string type);
+};
 
 class ProgramAnalyzer {
 	Scanner scanner;
-	
+	vector<TableEntry> symbols_table;
+
 	public:
 
 	ProgramAnalyzer(Scanner scanner);
