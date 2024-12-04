@@ -374,38 +374,76 @@ Automata DFAConstructor::minimizeDFA(const Automata &dfa)
     return minimizedDFA;
 }
 
-/**
- * @brief Prints the transition table of @param dfa.
- *
- * @param dfa
- */
-void DFAConstructor::printTransitionTable(const Automata &dfa)
-{
-    // Get all states of the DFA
+
+#include <iomanip>   // For setw
+#include <fstream>   // For ofstream
+
+void DFAConstructor::printTransitionTable(const Automata &dfa) {
+    // Open file stream
+    std::string fileName = "../Transition_table.txt";
+    std::ofstream outFile(fileName);
+    if (!outFile.is_open()) {
+        std::cerr << "Error: Unable to open file " << fileName << " for writing." << std::endl;
+        return;
+    }
+
+    // Get all states and initialize structures
     unordered_set<State *> allStates = dfa.getAllStates();
+    set<char> allInputs; // To store all possible input characters
 
-    // Print the header
-    std::cout << "State\tTransition (Input -> Target State)" << std::endl;
+    // Determine all possible input characters
+    for (State *state : allStates) {
+        for (auto &transition : state->getTransitions()) {
+            allInputs.insert(transition.first);
+        }
+    }
 
-    // Iterate through each state and print its transitions
-    for (State *state : allStates)
-    {
-        std::cout << state->getName() << "\t";
+    // Calculate column widths
+    size_t stateColumnWidth = 15;
+    size_t inputColumnWidth = 10;
 
-        // Print transitions for the state
-        bool first = true;
-        for (auto &transition : state->getTransitions())
-        {
-            if (!first)
-            {
-                std::cout << ", "; // Add a separator between multiple transitions
+    // Write the table header
+    outFile << std::left << std::setw(stateColumnWidth) << "State";
+    for (char input : allInputs) {
+        outFile << std::setw(inputColumnWidth) << input;
+    }
+    outFile << std::endl;
+
+    outFile << std::string(stateColumnWidth + inputColumnWidth * allInputs.size(), '-') << std::endl;
+
+    // Write each state and its transitions
+    for (State *state : allStates) {
+        outFile << std::left << std::setw(stateColumnWidth) << state->getName(); // State name in the first column
+
+        // Get all transitions as a map
+        auto transitions = state->getTransitions();
+
+        // Loop through all inputs in allInputs
+        for (char input : allInputs) {
+            // Check if the input exists in the transitions map directly
+            if (transitions.count(input) > 0) {
+                // Retrieve the vector of target states for the input
+                vector<State *> targetStates = transitions[input];
+                
+                // If the vector is not empty, write the first target state
+                if (!targetStates.empty()) {
+                    outFile << std::setw(inputColumnWidth) << targetStates[0]->getName();
+                } else {
+                    // No transitions for this input
+                    outFile << std::setw(inputColumnWidth) << " ";
+                }
+            } else {
+                // No transition for this input
+                outFile << std::setw(inputColumnWidth) << "-";
             }
-            first = false;
-
-            // Print transition: input -> target state
-            std::cout << transition.first << " -> " << transition.second.front()->getName(); // Assuming only one target state per transition for simplicity
         }
 
-        std::cout << std::endl;
+
+        outFile << std::endl;
     }
+
+    // Close file stream
+    outFile.close();
+    std::cout << "Transition table successfully written to " << fileName << std::endl;
 }
+
