@@ -1,10 +1,4 @@
-#include "State.h"
-#include "Automata.h"
-#include "NfaBuilder.h"
-#include "tests/NfaToDfaTest.cpp"
-#include "RulesParsing/FileParser.h"
-#include "ProgramAnalyzer.h"
-#include "DFAConstructor.h"
+#include "lexical_analysis/lexical_analysis.h"
 #include <iostream>
 
 int main(int argv, char **argc)
@@ -19,7 +13,7 @@ int main(int argv, char **argc)
 
 	// Construct a minimal DFA
 	DFAConstructor dfa_constructor;
-	Automata dfa = dfa_constructor.constructDFA(nfa);
+	Automata dfa = dfa_constructor.constructDFA(nfa);	
 	dfa = dfa_constructor.minimizeDFA(dfa);
 	dfa_constructor.printTransitionTable(dfa);
 	// Analyze a program with the automata.
@@ -32,9 +26,6 @@ int main(int argv, char **argc)
 	Scanner scanner2 = Scanner(dfa);
 	ProgramAnalyzer analyzer2 = ProgramAnalyzer(scanner2);
 	analyzer2.analyzeFile("example_program.txt");
-
-	// Print Transition Table
-	dfa_constructor.printTransitionTable(dfa);
 
 	return 0;
 }

@@ -1,13 +1,13 @@
 OBJ_FILES := build/main.o \
-build/Automata.o \
-build/Scanner.o \
-build/State.o \
-build/NfaBuilder.o \
-build/DFAConstructor.o \
-build/RulesParsing/FileParser.o \
-build/ProgramAnalyzer.o
+build/lexical_analysis/State.o \
+build/lexical_analysis/Automata.o \
+build/lexical_analysis/rules_parsing/FileParser.o \
+build/lexical_analysis/automata_construction/NfaBuilder.o \
+build/lexical_analysis/automata_construction/DFAConstructor.o \
+build/lexical_analysis/Scanner.o \
+build/lexical_analysis/ProgramAnalyzer.o
 
-FOLDERS := build build/RulesParsing
+FOLDERS := build build/lexical_analysis build/lexical_analysis/rules_parsing build/lexical_analysis/automata_construction
 
 EXECUTABLE_NAME := project
 
@@ -24,7 +24,7 @@ else
 endif
 
 exec_compile : $(OBJ_FILES)
-	g++  $(OBJ_FILES) -o ./build/$(EXECUTABLE_NAME).exe
+	g++ $(OBJ_FILES) -o build/$(EXECUTABLE_NAME).exe
 
 
 build/%.o : src/%.cpp

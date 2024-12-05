@@ -1,7 +1,7 @@
 #ifndef SUBSET_CONSTRUCTION_H
 #define SUBSET_CONSTRUCTION_H
 
-#include "Automata.h"
+#include "../Automata.h"
 #include <set>
 #include <unordered_map>
 #include <queue>

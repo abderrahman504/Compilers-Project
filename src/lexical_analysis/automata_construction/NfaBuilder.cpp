@@ -1,5 +1,5 @@
 #include "NfaBuilder.h"
-#include "Automata.h"
+//#include "Automata.h"
 #include <stack>
 #include <unordered_map>
 

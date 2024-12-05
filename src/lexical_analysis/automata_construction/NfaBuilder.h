@@ -1,8 +1,8 @@
 #ifndef NFABUILDER_H
 #define NFABUILDER_H
 
-#include "Automata.h"
-#include "RulesParsing/FileParser.h"
+#include "../Automata.h"
+#include "../rules_parsing/FileParser.h"
 
 class NfaBuilder {
 private:

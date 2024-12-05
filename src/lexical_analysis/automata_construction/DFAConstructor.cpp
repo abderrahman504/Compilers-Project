@@ -1,5 +1,4 @@
 #include "DFAConstructor.h"
-#include "Automata.h"
 #include <unordered_map>
 #include <queue>
 #include <set>
