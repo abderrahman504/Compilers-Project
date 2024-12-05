@@ -7,14 +7,21 @@ build/DFAConstructor.o \
 build/RulesParsing/FileParser.o \
 build/ProgramAnalyzer.o
 
-
+FOLDERS := build build/RulesParsing
 
 EXECUTABLE_NAME := project
 
 
-all : exec_compile
+all : make-folders exec_compile
 
+make-folders: $(FOLDERS)
 
+$(FOLDERS):
+ifeq ($(OS),Windows_NT)
+	mkdir $(subst /,\,$@)
+else
+	mkdir $@
+endif
 
 exec_compile : $(OBJ_FILES)
 	g++  $(OBJ_FILES) -o ./build/$(EXECUTABLE_NAME).exe
