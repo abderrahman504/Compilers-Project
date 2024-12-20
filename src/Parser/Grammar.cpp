@@ -207,11 +207,11 @@ void Grammar::computeFollowSet() {
 bool Grammar::isLL1() {
     // Implementation for LL(1) grammar check goes here
     for (const auto& [nonTerminal, rhs_list] : productions) {
-        std::set<std::string> combinedFirst;
+        std::unordered_set<std::string> combinedFirst;
 
         for (const auto& production : rhs_list) {
             // Compute First(production)
-            std::set<std::string> productionFirst;
+            std::unordered_set<std::string> productionFirst;
 
             bool nullable = true;
             for (const auto& symbol : production) {
@@ -271,6 +271,6 @@ bool Grammar::isLL1() {
 
 
 // Getter for productions
-const std::map<std::string, std::vector<std::vector<std::string>>>& Grammar::getProductions() const {
+const std::unordered_map<std::string, std::vector<std::vector<std::string>>>& Grammar::getProductions() const {
     return productions;
 }
