@@ -11,7 +11,7 @@ public:
     using RulesMap = std::unordered_map<std::string, std::vector<std::string>>;
 
     // Method to read and parse the CFG file
-    RulesMap readCFG(const std::string& filename);
+    RulesMap readCFG(const std::string& filename, std::string& out_start_symbol);
 
 private:
     // Utility method to trim whitespace from a string
