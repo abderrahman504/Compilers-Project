@@ -3,12 +3,12 @@
 
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 
 class CFGFileReader {
 public:
     // Define a type alias for storing the production rules
-    using RulesMap = std::map<std::string, std::vector<std::string>>;
+    using RulesMap = std::unordered_map<std::string, std::vector<std::string>>;
 
     // Method to read and parse the CFG file
     RulesMap readCFG(const std::string& filename);
