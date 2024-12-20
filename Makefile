@@ -5,9 +5,15 @@ build/lexical_analysis/rules_parsing/FileParser.o \
 build/lexical_analysis/automata_construction/NfaBuilder.o \
 build/lexical_analysis/automata_construction/DFAConstructor.o \
 build/lexical_analysis/Scanner.o \
-build/lexical_analysis/ProgramAnalyzer.o
+build/lexical_analysis/ProgramAnalyzer.o \
+build/Parser/CFGFileReader.o \
+build/Parser/Grammer.o
 
-FOLDERS := build build/lexical_analysis build/lexical_analysis/rules_parsing build/lexical_analysis/automata_construction
+
+FOLDERS := build \
+build/lexical_analysis \
+build/lexical_analysis/rules_parsing build/lexical_analysis/automata_construction \
+build/Parser
 
 EXECUTABLE_NAME := project
 
