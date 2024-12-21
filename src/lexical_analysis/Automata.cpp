@@ -10,7 +10,12 @@ Automata::Automata(State* initial_state){
 	reset();
 }
 
-Automata::~Automata(){}
+Automata::~Automata(){
+	auto all_states = getAllStates();
+	for(auto state : all_states){
+		delete state;
+	}
+}
 
 
 void Automata::reset(){

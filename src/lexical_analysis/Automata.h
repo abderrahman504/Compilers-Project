@@ -48,6 +48,7 @@ class Automata
 	Automata() = default;
 	Automata(State* initial_state);
 	
+// Used to free the states of the automata
 	~Automata();
 	
 	// Resets the automata to the initial state.
