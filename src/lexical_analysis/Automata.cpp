@@ -10,13 +10,10 @@ Automata::Automata(State* initial_state){
 	reset();
 }
 
-Automata::~Automata(){
+void Automata::freeStates(){
 	auto all_states = getAllStates();
-	for(auto state : all_states){
-		delete state;
-	}
+	for(auto state : all_states) delete state;
 }
-
 
 void Automata::reset(){
 	current_states.clear();
