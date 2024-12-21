@@ -3,23 +3,15 @@
 #include <sstream>
 #include <iostream>
 
-TableEntry::TableEntry(string symbol, string type){
-	this->symbol = symbol;
-	this->type = type;
-}
-
+TableEntry::TableEntry(string token, string type, int line, int column) : token(token), type(type), line(line), column(column) {}
 
 
 ProgramAnalyzer::ProgramAnalyzer(Scanner scanner) : scanner(scanner) {}
 
-void ProgramAnalyzer::analyzeFile(std::string file_path) {
-	
-	vector<TableEntry> symbol_table;
-
+vector<TableEntry> ProgramAnalyzer::analyzeFile(std::string file_path)
+{
 	ifstream file(file_path);
-	if (!file.is_open()) {
-		throw std::runtime_error("Could not open program file: example_program.txt\n");
-	}
+	if (!file.is_open()) throw std::runtime_error("Could not open program file: example_program.txt\n");
 	int line_count = 0;
 	std::string line;
 	while(std::getline(file, line)){
@@ -43,12 +35,13 @@ void ProgramAnalyzer::analyzeFile(std::string file_path) {
 				}
 				else{
 					std::cout << tk_type << "\n";
-					TableEntry entry(token, tk_type);
-					symbol_table.push_back(entry);
+					TableEntry entry(token, tk_type, line_count, char_count);
+					symbols_table.push_back(entry);
 				}
 				char_count += token.length();
 			}
 		}
 	}
 	file.close();
+	return symbols_table;
 }

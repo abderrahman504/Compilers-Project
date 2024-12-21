@@ -4,10 +4,12 @@
 #include "Scanner.h"
 
 struct TableEntry{
-	string symbol;
-	string type;
+	const string token;
+	const string type;
+	const int line;
+	const int column;
 
-	TableEntry(std::string symbol, std::string type);
+	TableEntry(std::string token, std::string type, int line, int column);
 };
 
 class ProgramAnalyzer {
@@ -18,8 +20,9 @@ class ProgramAnalyzer {
 
 	ProgramAnalyzer(Scanner scanner);
 
+	// Parses the given program and returns the successfully matched tokens with metadata.
+	vector<TableEntry> analyzeFile(std::string file_path);
 
-	void analyzeFile(std::string file_path);
 
 };
 
