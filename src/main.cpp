@@ -13,19 +13,15 @@ int main(int argv, char **argc)
 
 	// Construct a minimal DFA
 	DFAConstructor dfa_constructor;
-	Automata dfa = dfa_constructor.constructDFA(nfa);	
-	dfa = dfa_constructor.minimizeDFA(dfa);
-	dfa_constructor.printTransitionTable(dfa);
-	// Analyze a program with the automata.
-	//std::cout << "Analyses using NFA...\n";
-	//Scanner scanner = Scanner(nfa);
-	//ProgramAnalyzer analyzer = ProgramAnalyzer(scanner);
-	//analyzer.analyzeFile("example_program.txt");
+	Automata dfa = dfa_constructor.constructDFA(nfa);
+	nfa.freeStates();
+	Automata min_dfa = dfa_constructor.minimizeDFA(dfa);
+	dfa.freeStates();
 
 	std::cout << "Analysis using DFA...\n";
-	Scanner scanner2 = Scanner(dfa);
-	ProgramAnalyzer analyzer2 = ProgramAnalyzer(scanner2);
-	analyzer2.analyzeFile("example_program.txt");
+	Scanner scanner = Scanner(min_dfa);
+	ProgramAnalyzer analyzer = ProgramAnalyzer(scanner);
+	vector<TableEntry> tokens = analyzer.analyzeFile("example_program.txt");
 
 	return 0;
 }
