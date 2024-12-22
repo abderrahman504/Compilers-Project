@@ -29,7 +29,7 @@ ProgramAnalyzer::ProgramAnalyzer(string lexical_rules_file){
 vector<TableEntry> ProgramAnalyzer::analyzeFile(std::string file_path)
 {
 	ifstream file(file_path);
-	if (!file.is_open()) throw std::runtime_error("Could not open program file: example_program.txt\n");
+	if (!file.is_open()) throw std::runtime_error("Could not open program file: " + file_path + "\n");
 	int line_count = 0;
 	std::string line;
 	while(std::getline(file, line)){
