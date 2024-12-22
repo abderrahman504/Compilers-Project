@@ -1,154 +1,80 @@
 #include "Grammar.h"
-#include <fstream>
-#include <sstream>
+#include "GrammerFileReader.h"
 #include <stdexcept>
 #include <iostream>
-#include <regex>
 #include <algorithm>
 
-// Utility function to trim whitespace
-std::string trim(const std::string& str) {
-    size_t start = str.find_first_not_of(" \t");
-    size_t end = str.find_last_not_of(" \t");
-    return (start == std::string::npos || end == std::string::npos) ? "" : str.substr(start, end - start + 1);
+
+Grammar::Grammar(string grammer_file){
+    GrammerFileReader reader;
+    reader.readRules(grammer_file);
+    start_symbol = reader.getStartSymbol();
+    terminals = reader.getTerminals();
+    non_terminals = reader.getNonTerminals();
+    auto reader_productions = reader.getProductions();
+    for(auto [symbol, prods] : reader_productions){
+        for(auto p : prods) productions[symbol].push_back(Production(p));
+    }
 }
 
-// Load CFG from file and populate Grammar data structures
-void Grammar::loadFromFile(const std::string &filename) {
-    std::ifstream infile(filename);
-    if (!infile) {
-        throw std::runtime_error("Unable to open file: " + filename);
-    }
+void Grammar::buildFirst(string symbol){
+    // If the first set is already built then return.
+    if(firstSets.count(symbol)) return;
+    firstSets[symbol] = unordered_map<string, int>();
 
-    unordered_set<string> terminals;
-
-    std::string line, lhs, current_rhs;
-    bool is_rhs_continuing = false;
-
-    while (std::getline(infile, line)) {
-        line = trim(line);
-        if (line.empty() || line[0] == '#') continue; // Skip empty or comment lines
-
-        if (!is_rhs_continuing) {
-            auto pos = line.find("::=");
-            if (pos == std::string::npos) {
-                throw std::runtime_error("Invalid production rule format: " + line);
-            }
-
-            lhs = trim(line.substr(0, pos));
-            current_rhs = line.substr(pos + 3);
-
-            // Add LHS to nonTerminals
-            nonTerminals.push_back(lhs);
-            // Erase this symbol from terminals set in case it was mistakenly added
-            terminals.erase(lhs);
-        } else {
-            current_rhs += " " + line;
+    vector<Production> prods = productions[symbol];
+    for(int i=0; i<prods.size(); i++){
+        Production& p = prods[i];
+        int cur = 0;
+        unordered_map<string, int> first;
+        first[epsilon] = i;
+        // While the first set has epsi add the first of the next symbol in the production
+        while(firstSets[symbol].count(epsilon) && cur < p.symbols.size()){
+            first.erase(epsilon);
+            auto additions = getFirst(p.symbols[cur]);
+            first.insert(additions.begin(), additions.end());
+            cur++;
         }
 
-        if (line.back() == '\\') {
-            is_rhs_continuing = true;
-            current_rhs.pop_back(); // Remove the backslash
-        } else {
-            is_rhs_continuing = false;
-
-            // Parse the RHS into individual productions
-            std::vector<std::vector<std::string>> rhs_productions;
-            std::stringstream ss(current_rhs);
-            std::string option;
-            while (std::getline(ss, option, '|')) {
-                std::vector<std::string> tokens;
-                std::stringstream option_stream(trim(option));
-                std::string token;
-
-                while (option_stream >> token) {
-                    // Check if the token is a terminal
-                    if (std::find(nonTerminals.begin(), nonTerminals.end(), token) == nonTerminals.end())
-                        // If the token is epsilon then don't add it to terminals
-                        if(token != epsilon) terminals.insert(token);
-                    tokens.push_back(token);
-                }
-                rhs_productions.push_back(tokens);
-            }
-
-            // Add to productions map
-            productions[lhs].insert(productions[lhs].end(), rhs_productions.begin(), rhs_productions.end());
+        // For a LL(1) grammer there shouldn't be multiple productions generating the same element in FIRST
+        // so I'm checking if somehow duplicates occur when merging the first from this productions with the existing FIRST set.
+        int size_before = firstSets[symbol].size();
+        // Merge first with set from firstSets
+        firstSets[symbol].insert(first.begin(), first.end());
+        if(firstSets[symbol].size() - size_before != first.size()){
+            cout << "Duplicates while building FIRST(" << symbol <<"). Look into this plz.";
+            cout << "This means that the same symbol in FIRST was generated from multiple productions\n";
         }
     }
-
-    // Transfer terminal set to Grammer variable
-    for(auto s : terminals) this->terminals.push_back(s);
-
-    infile.close();
 }
 
-// Placeholder for First Set computation
-void Grammar::computeFirstSet() {
-    // Implementation of the First Set algorithm goes here
-    bool changed = true;
+void Grammar::buildFollow(string symbol){
+    // If the follow set is already build then return
+    if(followSets.count(symbol)) return;
+    followSets[symbol] = unordered_set<string>();
+    // If this is the starting symbol then add the eof "$" to follow
+    if(symbol == start_symbol) followSets[symbol].insert(eof);
 
-    // Initialize First sets
-    for (const auto& nonTerminal : nonTerminals) {
-        firstSet[nonTerminal] = {};
-    }
+    // implement later
+}
 
-    while (changed) {
-        changed = false;
 
-        for (const auto& [lhs, rhs_list] : productions) {
-            for (const auto& production : rhs_list) {
-                bool nullable = true;
-
-                for (const auto& symbol : production.symbols) {
-                    if (symbol.front() == '\'' && symbol.back() == '\'') {
-                        // Terminal: Add to First(lhs)
-                        if (firstSet[lhs].insert(symbol).second) {
-                            changed = true;
-                        }
-                        nullable = false;
-                        break;
-                    } else if (symbol == "\\L") {
-                        // Lambda: Add to First(lhs)
-                        if (firstSet[lhs].insert("\\L").second) {
-                            changed = true;
-                        }
-                    } else {
-                        // Non-terminal: Add First(symbol) \ {λ} to First(lhs)
-                        for (const auto& sym_first : firstSet[symbol]) {
-                            if (sym_first != "\\L" && firstSet[lhs].insert(sym_first).second) {
-                                changed = true;
-                            }
-                        }
-
-                        // If symbol cannot derive λ, stop
-                        if (firstSet[symbol].find("\\L") == firstSet[symbol].end()) {
-                            nullable = false;
-                            break;
-                        }
-                    }
-                }
-
-                // If all symbols in production can derive λ, add λ to First(lhs)
-                if (nullable && firstSet[lhs].insert("\\L").second) {
-                    changed = true;
-                }
-            }
-        }
-    }
+void Grammar::computeFirsts() {
+    for(auto symbol : non_terminals) buildFirst(symbol);
 }
 
 // Placeholder for Follow Set computation
-void Grammar::computeFollowSet() {
+void Grammar::computeFollows() {
     // Implementation of the Follow Set algorithm goes here
         bool changed = true;
 
     // Initialize Follow sets
-    for (const auto& nonTerminal : nonTerminals) {
-        followSet[nonTerminal] = {};
+    for (const auto& nonTerminal : non_terminals) {
+        followSets[nonTerminal] = {};
     }
 
     // Add $ to the Follow set of the start symbol
-    followSet[nonTerminals[0]].insert("$");
+    followSets[start_symbol].insert(eof);
 
     while (changed) {
         changed = false;
@@ -156,9 +82,9 @@ void Grammar::computeFollowSet() {
         for (const auto& [lhs, rhs_list] : productions) {
             for (const auto& production : rhs_list) {
                 for (size_t i = 0; i < production.symbols.size(); ++i) {
-                    const std::string& symbol = production.symbols[i];
+                    const string& symbol = production.symbols[i];
 
-                    if (std::find(nonTerminals.begin(), nonTerminals.end(), symbol) != nonTerminals.end()) {
+                    if (std::find(non_terminals.begin(), non_terminals.end(), symbol) != non_terminals.end()) {
                         // Symbol is a non-terminal
                         bool nullable = true;
 
@@ -167,21 +93,21 @@ void Grammar::computeFollowSet() {
                             const auto& beta = production.symbols[j];
                             if (beta.front() == '\'' && beta.back() == '\'') {
                                 // Terminal: Add to Follow(symbol)
-                                if (followSet[symbol].insert(beta).second) {
+                                if (followSets[symbol].insert(beta).second) {
                                     changed = true;
                                 }
                                 nullable = false;
                                 break;
                             } else {
                                 // Non-terminal: Add First(beta) \ {λ}
-                                for (const auto& beta_first : firstSet[beta]) {
-                                    if (beta_first != "\\L" && followSet[symbol].insert(beta_first).second) {
+                                for (const auto& [beta_first, _] : firstSets[beta]) {
+                                    if (beta_first != epsilon && followSets[symbol].insert(beta_first).second) {
                                         changed = true;
                                     }
                                 }
 
                                 // If beta cannot derive λ, stop
-                                if (firstSet[beta].find("\\L") == firstSet[beta].end()) {
+                                if (firstSets[beta].find(epsilon) == firstSets[beta].end()) {
                                     nullable = false;
                                     break;
                                 }
@@ -190,8 +116,8 @@ void Grammar::computeFollowSet() {
 
                         // If beta derives λ or is empty, add Follow(lhs) to Follow(symbol)
                         if (nullable || i + 1 == production.symbols.size()) {
-                            for (const auto& lhs_follow : followSet[lhs]) {
-                                if (followSet[symbol].insert(lhs_follow).second) {
+                            for (const auto& lhs_follow : followSets[lhs]) {
+                                if (followSets[symbol].insert(lhs_follow).second) {
                                     changed = true;
                                 }
                             }
@@ -207,11 +133,11 @@ void Grammar::computeFollowSet() {
 bool Grammar::isLL1() {
     // Implementation for LL(1) grammar check goes here
     for (const auto& [nonTerminal, rhs_list] : productions) {
-        std::unordered_set<std::string> combinedFirst;
+        unordered_set<string> combinedFirst;
 
         for (const auto& production : rhs_list) {
             // Compute First(production)
-            std::unordered_set<std::string> productionFirst;
+            unordered_set<string> productionFirst;
 
             bool nullable = true;
             for (const auto& symbol : production.symbols) {
@@ -220,19 +146,19 @@ bool Grammar::isLL1() {
                     productionFirst.insert(symbol);
                     nullable = false;
                     break;
-                } else if (symbol == "\\L") {
+                } else if (symbol == epsilon) {
                     // Lambda: Continue to next symbol
-                    productionFirst.insert("\\L");
+                    productionFirst.insert(epsilon);
                 } else {
                     // Non-terminal: Add First(symbol) \ {λ} to First(production)
-                    for (const auto& sym_first : firstSet[symbol]) {
-                        if (sym_first != "\\L") {
+                    for (const auto& [sym_first,_] : firstSets[symbol]) {
+                        if (sym_first != epsilon) {
                             productionFirst.insert(sym_first);
                         }
                     }
 
                     // If symbol is not nullable, stop
-                    if (firstSet[symbol].find("\\L") == firstSet[symbol].end()) {
+                    if (firstSets[symbol].count(epsilon) == 0) {
                         nullable = false;
                         break;
                     }
@@ -241,7 +167,7 @@ bool Grammar::isLL1() {
 
             // If nullable, add λ to First(production)
             if (nullable) {
-                productionFirst.insert("\\L");
+                productionFirst.insert(epsilon);
             }
 
             // Check for overlap in combinedFirst and productionFirst
@@ -255,7 +181,7 @@ bool Grammar::isLL1() {
 
             // If production is nullable, check FOLLOW set
             if (nullable) {
-                for (const auto& followSym : followSet[nonTerminal]) {
+                for (const auto& followSym : followSets[nonTerminal]) {
                     if (combinedFirst.find(followSym) != combinedFirst.end()) {
                         // Conflict between FIRST and FOLLOW sets
                         return false;
@@ -271,6 +197,32 @@ bool Grammar::isLL1() {
 
 
 // Getter for productions
-const std::unordered_map<std::string, std::vector<Production>>& Grammar::getProductions() const {
+const unordered_map<string, vector<Production>>& Grammar::getProductions() const {
     return productions;
+}
+
+
+const unordered_map<string, int> Grammar::getFirst(string symbol){
+    if(terminals.count(symbol)) return unordered_map<string, int>{{symbol, -1}};
+    else if(non_terminals.count(symbol)){
+        if(firstSets.count(symbol) == 0) buildFirst(symbol);
+        return firstSets[symbol]; 
+    }
+    else return unordered_map<string, int>();
+}
+
+const unordered_set<string> Grammar::getFollow(string symbol){
+    if(non_terminals.count(symbol)){
+        if(followSets.count(symbol) == 0) buildFollow(symbol);
+        return followSets[symbol];
+    }
+    return unordered_set<string>();
+}
+
+const unordered_map<string, unordered_map<string, int>>& Grammar::getFirstSets(){
+    return firstSets;
+}
+
+const unordered_map<string, unordered_set<string>>& Grammar::getFollowSets(){
+    return followSets;
 }

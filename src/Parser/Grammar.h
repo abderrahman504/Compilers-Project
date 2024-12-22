@@ -14,20 +14,37 @@ struct Production{
 
 class Grammar {
 private:
-    const string epsilon = "Epsilon";
-
-    std::vector<std::string> nonTerminals;
-    std::vector<std::string> terminals;
-    std::unordered_map<std::string, std::vector<Production>> productions;
-    std::unordered_map<std::string, std::unordered_set<std::string>> firstSet;
-    std::unordered_map<std::string, std::unordered_set<std::string>> followSet;
+    string start_symbol;
+    unordered_set<string> terminals;
+    unordered_set<string> non_terminals;
+    unordered_map<string, vector<Production>> productions;
+    unordered_map<string, unordered_map<string, int>> firstSets; // Each element in a First set is mapped to the production that generated it.
+    unordered_map<string, unordered_set<string>> followSets;
+    
+    // Builds FIRST(`symbol`) if it doesn't exist
+    void buildFirst(string symbol);
+    // Builds FOLLOW(`symbol`) if it doesn't exist
+    void buildFollow(string symbol);
+    // Returns the first set of `symbol`. `symbol` Can be a terminal or non-terminal.
+    const unordered_map<string, int> getFirst(string symbol);
+    // Returns the follow set of `symbol`. `symbol` must be a non-terminal.
+    const unordered_set<string> getFollow(string symbol);
 
 public:
-    void loadFromFile(const std::string &filename);
-    void computeFirstSet();
-    void computeFollowSet();
+    const string epsilon = "Epsilon";
+    const string eof = "EOF";
+
+    Grammar(string grammer_file);
+
+    // Builds the FIRST sets of all non-terminals
+    void computeFirsts();
+    // Builds the FOLLOW sets of all non-terminals
+    void computeFollows();
+
     bool isLL1();
-    const std::unordered_map<std::string, std::vector<Production>>& getProductions() const;
-    const std::unordered_map<std::string, std::unordered_set<std::string>> getFirstSet();
-    const std::unordered_map<std::string, std::unordered_set<std::string>> getFollowSet();
+    const unordered_map<string, vector<Production>>& getProductions() const;
+    // Returns first sets of all non-terminals.
+    const unordered_map<string, unordered_map<string, int>>& getFirstSets();
+    // Returns follow sets of all non-terminals.
+    const unordered_map<string, unordered_set<string>>& getFollowSets();
 };
