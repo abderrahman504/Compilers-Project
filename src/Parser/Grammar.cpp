@@ -20,6 +20,8 @@ void Grammar::loadFromFile(const std::string &filename) {
         throw std::runtime_error("Unable to open file: " + filename);
     }
 
+    unordered_set<string> terminals;
+
     std::string line, lhs, current_rhs;
     bool is_rhs_continuing = false;
 
@@ -36,10 +38,10 @@ void Grammar::loadFromFile(const std::string &filename) {
             lhs = trim(line.substr(0, pos));
             current_rhs = line.substr(pos + 3);
 
-            // Add LHS to nonTerminals if not already present
-            if (std::find(nonTerminals.begin(), nonTerminals.end(), lhs) == nonTerminals.end()) {
-                nonTerminals.push_back(lhs);
-            }
+            // Add LHS to nonTerminals
+            nonTerminals.push_back(lhs);
+            // Erase this symbol from terminals set in case it was mistakenly added
+            terminals.erase(lhs);
         } else {
             current_rhs += " " + line;
         }
@@ -61,10 +63,9 @@ void Grammar::loadFromFile(const std::string &filename) {
 
                 while (option_stream >> token) {
                     // Check if the token is a terminal
-                    if (token.front() == '\'' && token.back() == '\'') {
-                        terminals.push_back(token);
-                    }
-
+                    if (std::find(nonTerminals.begin(), nonTerminals.end(), token) == nonTerminals.end())
+                        // If the token is epsilon then don't add it to terminals
+                        if(token != epsilon) terminals.insert(token);
                     tokens.push_back(token);
                 }
                 rhs_productions.push_back(tokens);
@@ -75,9 +76,8 @@ void Grammar::loadFromFile(const std::string &filename) {
         }
     }
 
-    // Remove duplicate terminals
-    std::sort(terminals.begin(), terminals.end());
-    terminals.erase(std::unique(terminals.begin(), terminals.end()), terminals.end());
+    // Transfer terminal set to Grammer variable
+    for(auto s : terminals) this->terminals.push_back(s);
 
     infile.close();
 }
@@ -99,7 +99,7 @@ void Grammar::computeFirstSet() {
             for (const auto& production : rhs_list) {
                 bool nullable = true;
 
-                for (const auto& symbol : production) {
+                for (const auto& symbol : production.symbols) {
                     if (symbol.front() == '\'' && symbol.back() == '\'') {
                         // Terminal: Add to First(lhs)
                         if (firstSet[lhs].insert(symbol).second) {
@@ -155,16 +155,16 @@ void Grammar::computeFollowSet() {
 
         for (const auto& [lhs, rhs_list] : productions) {
             for (const auto& production : rhs_list) {
-                for (size_t i = 0; i < production.size(); ++i) {
-                    const std::string& symbol = production[i];
+                for (size_t i = 0; i < production.symbols.size(); ++i) {
+                    const std::string& symbol = production.symbols[i];
 
                     if (std::find(nonTerminals.begin(), nonTerminals.end(), symbol) != nonTerminals.end()) {
                         // Symbol is a non-terminal
                         bool nullable = true;
 
                         // Add First(beta) \ {λ} to Follow(symbol)
-                        for (size_t j = i + 1; j < production.size(); ++j) {
-                            const auto& beta = production[j];
+                        for (size_t j = i + 1; j < production.symbols.size(); ++j) {
+                            const auto& beta = production.symbols[j];
                             if (beta.front() == '\'' && beta.back() == '\'') {
                                 // Terminal: Add to Follow(symbol)
                                 if (followSet[symbol].insert(beta).second) {
@@ -189,7 +189,7 @@ void Grammar::computeFollowSet() {
                         }
 
                         // If beta derives λ or is empty, add Follow(lhs) to Follow(symbol)
-                        if (nullable || i + 1 == production.size()) {
+                        if (nullable || i + 1 == production.symbols.size()) {
                             for (const auto& lhs_follow : followSet[lhs]) {
                                 if (followSet[symbol].insert(lhs_follow).second) {
                                     changed = true;
@@ -214,7 +214,7 @@ bool Grammar::isLL1() {
             std::unordered_set<std::string> productionFirst;
 
             bool nullable = true;
-            for (const auto& symbol : production) {
+            for (const auto& symbol : production.symbols) {
                 if (symbol.front() == '\'' && symbol.back() == '\'') {
                     // Terminal: Add to First(production)
                     productionFirst.insert(symbol);
@@ -271,6 +271,6 @@ bool Grammar::isLL1() {
 
 
 // Getter for productions
-const std::unordered_map<std::string, std::vector<std::vector<std::string>>>& Grammar::getProductions() const {
+const std::unordered_map<std::string, std::vector<Production>>& Grammar::getProductions() const {
     return productions;
 }
