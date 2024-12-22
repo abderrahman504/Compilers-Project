@@ -48,15 +48,15 @@ void Grammar::buildFirst(string symbol){
     }
 }
 
-void Grammar::buildFollow(string symbol){
-    // If the follow set is already build then return
-    if(followSets.count(symbol)) return;
-    followSets[symbol] = unordered_set<string>();
-    // If this is the starting symbol then add the eof "$" to follow
-    if(symbol == start_symbol) followSets[symbol].insert(eof);
+//void Grammar::buildFollow(string symbol){
+//    // If the follow set is already build then return
+//    if(followSets.count(symbol)) return;
+//    followSets[symbol] = unordered_set<string>();
+//    // If this is the starting symbol then add the eof "$" to follow
+//    if(symbol == start_symbol) followSets[symbol].insert(eof);
 
-    // implement later
-}
+//    // implement later
+//}
 
 
 void Grammar::computeFirsts() {
@@ -212,11 +212,12 @@ const unordered_map<string, int> Grammar::getFirst(string symbol){
 }
 
 const unordered_set<string> Grammar::getFollow(string symbol){
-    if(non_terminals.count(symbol)){
-        if(followSets.count(symbol) == 0) buildFollow(symbol);
-        return followSets[symbol];
-    }
-    return unordered_set<string>();
+    return followSets[symbol];
+    //if(non_terminals.count(symbol)){
+    //    if(followSets.count(symbol) == 0) buildFollow(symbol);
+    //    return followSets[symbol];
+    //}
+    //return unordered_set<string>();
 }
 
 const unordered_map<string, unordered_map<string, int>>& Grammar::getFirstSets(){

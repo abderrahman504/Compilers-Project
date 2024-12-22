@@ -23,8 +23,8 @@ private:
     
     // Builds FIRST(`symbol`) if it doesn't exist
     void buildFirst(string symbol);
-    // Builds FOLLOW(`symbol`) if it doesn't exist
-    void buildFollow(string symbol);
+    //// Builds FOLLOW(`symbol`) if it doesn't exist
+    //void buildFollow(string symbol);
     // Returns the first set of `symbol`. `symbol` Can be a terminal or non-terminal.
     const unordered_map<string, int> getFirst(string symbol);
     // Returns the follow set of `symbol`. `symbol` must be a non-terminal.
