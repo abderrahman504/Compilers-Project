@@ -220,10 +220,18 @@ const unordered_set<string> Grammar::getFollow(string symbol){
     //return unordered_set<string>();
 }
 
-const unordered_map<string, unordered_map<string, int>>& Grammar::getFirstSets(){
+const unordered_map<string, unordered_map<string, int>>& Grammar::getFirstSets() const {
     return firstSets;
 }
 
-const unordered_map<string, unordered_set<string>>& Grammar::getFollowSets(){
+const unordered_map<string, unordered_set<string>>& Grammar::getFollowSets() const {
     return followSets;
+}
+
+const unordered_set<string>& Grammar::getTerminals() const {
+    return terminals;
+}
+
+const unordered_set<string>& Grammar::getNonTerminals() const {
+    return non_terminals;
 }
