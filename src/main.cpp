@@ -12,7 +12,12 @@ int main(int argv, char **argc)
 
 	// PHASE 2
 
-	Grammar grammer;
-	grammer.loadFromFile("example_grammer.txt");
+	Grammar grammer("example_grammer.txt");
+	grammer.computeFirsts();
+	if(!grammer.isLL1()){
+		cout << "Grammer is not LL(1). Aborting.\n";
+		return 0;
+	}
+
 	return 0;
 }
