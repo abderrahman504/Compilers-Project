@@ -1,27 +1,18 @@
 #include "lexical_analysis/lexical_analysis.h"
+#include "Parser/syntax_parsing.h"
 #include <iostream>
 
 int main(int argv, char **argc)
 {
-	// Parse rules file
-	FileParser parser;
-	parser.parseFile("example_rules.txt");
+	// PHASE 1
 
-	// Construct a NFA
-	NfaBuilder builder;
-	Automata nfa = builder.getFullNFA(parser.getRegularExpressions(), parser.getKeywords(), parser.getPunctuations());
+	ProgramAnalyzer lexical_analyzer("example_rules.txt");
+	vector<TableEntry> tokens = lexical_analyzer.analyzeFile("example_program.txt");
 
-	// Construct a minimal DFA
-	DFAConstructor dfa_constructor;
-	Automata dfa = dfa_constructor.constructDFA(nfa);
-	nfa.freeStates();
-	Automata min_dfa = dfa_constructor.minimizeDFA(dfa);
-	dfa.freeStates();
 
-	std::cout << "Analysis using DFA...\n";
-	Scanner scanner = Scanner(min_dfa);
-	ProgramAnalyzer analyzer = ProgramAnalyzer(scanner);
-	vector<TableEntry> tokens = analyzer.analyzeFile("example_program.txt");
+	// PHASE 2
 
+	Grammar grammer;
+	grammer.loadFromFile("example_grammer.txt");
 	return 0;
 }
