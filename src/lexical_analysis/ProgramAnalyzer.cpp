@@ -1,12 +1,30 @@
 #include "ProgramAnalyzer.h"
+#include "automata_construction/NfaBuilder.h"
+#include "automata_construction/DFAConstructor.h"
+#include "Automata.h"
+#include "rules_parsing/FileParser.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
 
 TableEntry::TableEntry(string token, string type, int line, int column) : token(token), type(type), line(line), column(column) {}
 
 
 ProgramAnalyzer::ProgramAnalyzer(Scanner scanner) : scanner(scanner) {}
+
+ProgramAnalyzer::ProgramAnalyzer(string lexical_rules_file){
+	FileParser rules_parser;
+	rules_parser.parseFile(lexical_rules_file);
+	NfaBuilder nfa_build;
+	Automata nfa = nfa_build.getFullNFA(rules_parser.getRegularExpressions(), rules_parser.getKeywords(), rules_parser.getPunctuations());
+	DFAConstructor dfa_build;
+	Automata dfa = dfa_build.constructDFA(nfa);
+	Automata min_dfa = dfa_build.minimizeDFA(dfa);
+	nfa.freeStates();
+	dfa.freeStates();
+	scanner = Scanner(min_dfa);
+}
 
 vector<TableEntry> ProgramAnalyzer::analyzeFile(std::string file_path)
 {

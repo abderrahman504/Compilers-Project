@@ -19,6 +19,8 @@ class ProgramAnalyzer {
 	public:
 
 	ProgramAnalyzer(Scanner scanner);
+	// Initialize the analyzer by specifying the file containing the lexical rules
+	ProgramAnalyzer(string lexical_rules_file);
 
 	// Parses the given program and returns the successfully matched tokens with metadata.
 	vector<TableEntry> analyzeFile(std::string file_path);

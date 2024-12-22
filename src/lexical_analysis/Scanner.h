@@ -18,6 +18,7 @@ class Scanner
 	public:
 	// Specify the Automata used for scanning input
 	Scanner(Automata automata);
+	Scanner() = default;
 
 	void setInput(string input);
 
