@@ -1,3 +1,6 @@
+#ifndef PARSING_TABLE_H
+#define PARSING_TABLE_H
+
 #include "Grammar.h"
 class ParsingTable {
 private:
@@ -9,3 +12,5 @@ public:
     std::string getAction(const std::string &nonTerminal, const std::string &terminal) const;
     void printTable() const;
 };
+
+#endif

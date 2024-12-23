@@ -1,3 +1,5 @@
+#ifndef GRAMMAR_H
+#define GRAMMAR_H
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -64,3 +66,5 @@ public:
     const unordered_set<string> &getNonTerminals() const;
 
 };
+
+#endif
