@@ -12,8 +12,9 @@ int main(int argv, char **argc)
 
 	// PHASE 2
 
-	Grammar grammer("example_grammer.txt");
+	Grammar grammer("example_grammer_LL1.txt");
 	grammer.computeFirsts();
+	grammer.computeFollows();
 	if(!grammer.isLL1()){
 		cout << "Grammer is not LL(1). Aborting.\n";
 		return 0;
