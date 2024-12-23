@@ -29,13 +29,16 @@ void Grammar::buildFirst(string symbol){
         unordered_map<string, int> first;
         first[epsilon] = i;
         // While the first set has epsi add the first of the next symbol in the production
-        while(firstSets[symbol].count(epsilon) && cur < p.symbols.size()){
+        while(first.count(epsilon) && cur < p.symbols.size()){
             first.erase(epsilon);
             auto additions = getFirst(p.symbols[cur]);
             first.insert(additions.begin(), additions.end());
             cur++;
         }
 
+        for(auto [elem, _] : first){
+            first[elem] = i;
+        }
         // For a LL(1) grammer there shouldn't be multiple productions generating the same element in FIRST
         // so I'm checking if somehow duplicates occur when merging the first from this productions with the existing FIRST set.
         int size_before = firstSets[symbol].size();
