@@ -2,10 +2,13 @@
 #define PARSING_TABLE_H
 
 #include "Grammar.h"
-class ParsingTable {
+#include <map>
+
+class ParsingTable
+{
 private:
-    //maps each row x col (pair<string,string>) to entry (string)
-    std::unordered_map<std::pair<std::string, std::string>, std::string> table;
+    // maps each row x col (pair<string,string>) to entry (string)
+    std::map<std::string, std::map<std::string, std::string>> table;
 
 public:
     void constructTable(const Grammar &grammar);

@@ -2,19 +2,6 @@
 #include <iostream>
 #include <iomanip>
 
-// Hash function for pair<string, string> to use in unordered_map
-namespace std
-{
-    template <>
-    struct hash<std::pair<std::string, std::string>>
-    {
-        size_t operator()(const std::pair<std::string, std::string> &pair) const
-        {
-            return hash<std::string>()(pair.first) ^ hash<std::string>()(pair.second);
-        }
-    };
-}
-
 void ParsingTable::constructTable(const Grammar &grammar)
 {
     // Step 1: Get the necessary data from the Grammar object
@@ -29,83 +16,54 @@ void ParsingTable::constructTable(const Grammar &grammar)
     for (const auto &nonTerminal : nonTerminals)
     {
         const auto &productionList = productions.at(nonTerminal); // Get productions for this non-terminal
+        const auto &firstSet = firstSets.at(nonTerminal);         // Get FIRST set for this non-terminal
+        const auto &followSet = followSets.at(nonTerminal);       // Get FOLLOW set for this non-terminal
 
-        // Step 3: For each production of the non-terminal
-        for (const auto &production : productionList)
+        for (const auto &firstElement : firstSet)
         {
-            const auto &symbols = production.symbols;
-
-            // Step 4: Get the FIRST set for this production directly
-            std::unordered_set<std::string> productionFirstSet;
-            bool isNullable = true;
-
-            for (const auto &symbol : symbols)
+            string element = firstElement.first;
+            int productionIndex = firstElement.second;
+            if (element == epsilon)
             {
-                if (terminals.count(symbol))
+                for (const auto &followElement : followSet)
                 {
-                    // Terminal: Add it directly to the FIRST set
-                    productionFirstSet.insert(symbol);
-                    isNullable = false; // Terminal makes it non-nullable
-                    break;
-                }
-                else if (nonTerminals.count(symbol))
-                {
-                    // Non-terminal: Add its FIRST set
-                    const auto &symbolFirstSet = firstSets.at(symbol);
-                    productionFirstSet.insert(symbolFirstSet.begin(), symbolFirstSet.end());
-                    if (symbolFirstSet.count(epsilon) == 0)
-                    {
-                        isNullable = false;
-                        break;
-                    }
-                }
-                else if (symbol == epsilon)
-                {
-                    // Production explicitly contains ε
-                    productionFirstSet.insert(epsilon);
-                    isNullable = true;
-                    break;
+                    table[nonTerminal][followElement] = productionList[productionIndex].toString();
                 }
             }
-
-            // Step 5: Fill the parsing table for all terminals in FIRST(production)
-            for (const auto &term : productionFirstSet)
+            else
             {
-                if (term != epsilon)
-                {
-                    table[{nonTerminal, term}] = production.toString();
-                }
-            }
-
-            // Step 6: If nullable, fill the table using FOLLOW(nonTerminal)
-            if (isNullable)
-            {
-                const auto &followSet = followSets.at(nonTerminal);
-                for (const auto &term : followSet)
-                {
-                    table[{nonTerminal, term}] = production.toString();
-                }
+                table[nonTerminal][element] = productionList[productionIndex].toString();
             }
         }
     }
 }
 
+// Get action for a given non-terminal and terminal
 std::string ParsingTable::getAction(const std::string &nonTerminal, const std::string &terminal) const
 {
-    auto it = table.find({nonTerminal, terminal});
-    if (it != table.end())
+    auto itNonTerminal = table.find(nonTerminal);
+    if (itNonTerminal != table.end())
     {
-        return it->second;
+        auto itTerminal = itNonTerminal->second.find(terminal);
+        if (itTerminal != itNonTerminal->second.end())
+        {
+            return itTerminal->second;
+        }
     }
     return ""; // Return empty string if no action exists
 }
 
+// Print the parsing table
 void ParsingTable::printTable() const
 {
-    for (const auto &entry : table)
+    for (const auto &nonTerminalEntry : table)
     {
-        const auto &[key, production] = entry;
-        const auto &[nonTerminal, terminal] = key;
-        std::cout << "(" << nonTerminal << ", " << terminal << ") -> " << production << std::endl;
+        const auto &nonTerminal = nonTerminalEntry.first;
+        for (const auto &terminalEntry : nonTerminalEntry.second)
+        {
+            const auto &terminal = terminalEntry.first;
+            const auto &production = terminalEntry.second;
+            std::cout << "(" << nonTerminal << ", " << terminal << ") -> " << production << std::endl;
+        }
     }
 }
