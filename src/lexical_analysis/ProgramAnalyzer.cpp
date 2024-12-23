@@ -52,7 +52,7 @@ vector<TableEntry> ProgramAnalyzer::analyzeFile(std::string file_path)
 						scanner.setInput(word.substr(++word_start));
 				}
 				else{
-					std::cout << tk_type << "\n";
+					//std::cout << tk_type << "\n";
 					TableEntry entry(token, tk_type, line_count, char_count);
 					symbols_table.push_back(entry);
 				}
