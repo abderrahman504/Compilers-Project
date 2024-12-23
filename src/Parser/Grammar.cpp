@@ -10,6 +10,7 @@ Grammar::Grammar(string grammer_file){
     reader.readRules(grammer_file);
     start_symbol = reader.getStartSymbol();
     terminals = reader.getTerminals();
+    terminals.insert(eof);
     non_terminals = reader.getNonTerminals();
     auto reader_productions = reader.getProductions();
     for(auto [symbol, prods] : reader_productions){
