@@ -26,6 +26,8 @@ struct Production
     }
 };
 
+using FirstSet = unordered_map<string, int>;
+
 class Grammar
 {
 private:
@@ -33,13 +35,13 @@ private:
     unordered_set<string> terminals;
     unordered_set<string> non_terminals;
     unordered_map<string, vector<Production>> productions;
-    unordered_map<string, unordered_map<string, int>> firstSets; // Each element in a First set is mapped to the production that generated it.
+    unordered_map<string, FirstSet> firstSets; // Each element in a First set is mapped to the production that generated it.
     unordered_map<string, unordered_set<string>> followSets;
 
     // Builds FIRST(`symbol`) if it doesn't exist
     void buildFirst(string symbol);
     // Returns the first set of `symbol`. `symbol` Can be a terminal or non-terminal.
-    const unordered_map<string, int> getFirst(string symbol);
+    const FirstSet getFirst(string symbol);
     // Returns the follow set of `symbol`. `symbol` must be a non-terminal.
     const unordered_set<string> getFollow(string symbol);
     // Builds the FIRST sets of all non-terminals
@@ -52,6 +54,7 @@ public:
     const string eof = "EOF";
 
     Grammar(string grammer_file);
+    Grammar() = default;
 
 
     bool isLL1();
@@ -59,7 +62,7 @@ public:
     string getStartSymbol();
     const unordered_map<string, vector<Production>> getProductions() const;
     // Returns first sets of all non-terminals.
-    const unordered_map<string, unordered_map<string, int>> getFirstSets() const;
+    const unordered_map<string, FirstSet> getFirstSets() const;
     // Returns follow sets of all non-terminals.
     const unordered_map<string, unordered_set<string>> getFollowSets() const;
     // Returns terminals

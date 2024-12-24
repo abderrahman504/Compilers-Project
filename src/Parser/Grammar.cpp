@@ -23,13 +23,13 @@ Grammar::Grammar(string grammer_file){
 void Grammar::buildFirst(string symbol){
     // If the first set is already built then return.
     if(firstSets.count(symbol)) return;
-    firstSets[symbol] = unordered_map<string, int>();
+    firstSets[symbol] = FirstSet();
 
     vector<Production> prods = productions[symbol];
     for(int i=0; i<prods.size(); i++){
         Production& p = prods[i];
         int cur = 0;
-        unordered_map<string, int> first;
+        FirstSet first;
         first[epsilon] = i;
         // While the first set has epsi add the first of the next symbol in the production
         while(first.count(epsilon) && cur < p.symbols.size()){
@@ -192,12 +192,12 @@ bool Grammar::isLL1() {
 
 
 
-const unordered_map<string, int> Grammar::getFirst(string symbol){
+const FirstSet Grammar::getFirst(string symbol){
     if(non_terminals.count(symbol)){
         if(firstSets.count(symbol) == 0) buildFirst(symbol);
         return firstSets[symbol]; 
     }
-    else return unordered_map<string, int>{{symbol, -1}};
+    else return FirstSet{{symbol, -1}};
 }
 
 const unordered_set<string> Grammar::getFollow(string symbol){
@@ -213,7 +213,7 @@ const unordered_map<string, vector<Production>> Grammar::getProductions() const 
     return productions;
 }
 
-const unordered_map<string, unordered_map<string, int>> Grammar::getFirstSets() const {
+const unordered_map<string, FirstSet> Grammar::getFirstSets() const {
     return firstSets;
 }
 
