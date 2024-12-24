@@ -3,6 +3,18 @@
 #include <stdio.h>
 #include <iomanip>
 
+
+std::string vectorToString(const std::vector<std::string>& vec, const std::string& delimiter = " ") {
+    std::ostringstream oss;
+    for (size_t i = 0; i < vec.size(); ++i) {
+        if (i != 0) {
+            oss << delimiter;
+        }
+        oss << vec[i];
+    }
+    return oss.str();
+}
+
 void ParsingTable::constructTable(const Grammar &grammar)
 {
     // Step 1: Get the necessary data from the Grammar object
@@ -24,9 +36,9 @@ void ParsingTable::constructTable(const Grammar &grammar)
         for(auto terminal : terminals){
             string table_value;
             // Fill table entry with one of: -Production -Synch -Error
-            if(firstSet.count(terminal)) table_value = productionList[firstSet.at(terminal)].toString();
+            if(firstSet.count(terminal)) table_value = vectorToString(productionList[firstSet.at(terminal)]);
             else if(followSet.count(terminal)){
-                if(firstSet.count(epsilon)) table_value = productionList[firstSet.at(epsilon)].toString();
+                if(firstSet.count(epsilon)) table_value = vectorToString(productionList[firstSet.at(epsilon)]);
                 else table_value = synch;
             }
             else table_value = error;
