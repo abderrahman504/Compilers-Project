@@ -7,7 +7,7 @@ int main(int argv, char **argc)
 	// PHASE 1
 
 	ProgramAnalyzer lexical_analyzer("example_rules.txt");
-	vector<TableEntry> tokens = lexical_analyzer.analyzeFile("example_program.txt");
+	vector<TableEntry> tokens = lexical_analyzer.analyzeFile("example_program_2.txt");
 
 
 	// PHASE 2

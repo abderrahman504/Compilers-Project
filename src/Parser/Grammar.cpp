@@ -67,7 +67,7 @@ void Grammar::buildFollow(string symbol) {
     // Initialize the follow set for the symbol.
     followSets[symbol] = FollowSet();
     if (symbol == getStartSymbol()) {
-        followSets[symbol]["$"] = 0; // Assign a default priority for the end marker.
+        followSets[symbol][eof] = 0; // Assign a default priority for the end marker.
     }
     // if(symbol == getStartSymbol()) followSets[symbol][] = start_symbol;
     // Iterate through all productions to compute the Follow set for the symbol.
