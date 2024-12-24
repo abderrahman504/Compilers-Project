@@ -32,9 +32,9 @@ void Grammar::buildFirst(string symbol){
         FirstSet first;
         first[epsilon] = i;
         // While the first set has epsi add the first of the next symbol in the production
-        while(first.count(epsilon) && cur < p.symbols.size()){
+        while(first.count(epsilon) && cur < p.size()){
             first.erase(epsilon);
-            auto additions = getFirst(p.symbols[cur]);
+            auto additions = getFirst(p[cur]);
             first.insert(additions.begin(), additions.end());
             cur++;
         }
@@ -77,16 +77,16 @@ void Grammar::computeFollows() {
 
         for (const auto& [lhs, rhs_list] : productions) {
             for (const auto& production : rhs_list) {
-                for (size_t i = 0; i < production.symbols.size(); ++i) {
-                    const string& symbol = production.symbols[i];
+                for (size_t i = 0; i < production.size(); ++i) {
+                    const string& symbol = production[i];
 
                     if (std::find(non_terminals.begin(), non_terminals.end(), symbol) != non_terminals.end()) {
                         // Symbol is a non-terminal
                         bool nullable = true;
 
                         // Add First(beta) \ {λ} to Follow(symbol)
-                        for (size_t j = i + 1; j < production.symbols.size(); ++j) {
-                            const auto& beta = production.symbols[j];
+                        for (size_t j = i + 1; j < production.size(); ++j) {
+                            const auto& beta = production[j];
                             if (beta.front() == '\'' && beta.back() == '\'') {
                                 // Terminal: Add to Follow(symbol)
                                 if (followSets[symbol].insert(beta).second) {
@@ -111,7 +111,7 @@ void Grammar::computeFollows() {
                         }
 
                         // If beta derives λ or is empty, add Follow(lhs) to Follow(symbol)
-                        if (nullable || i + 1 == production.symbols.size()) {
+                        if (nullable || i + 1 == production.size()) {
                             for (const auto& lhs_follow : followSets[lhs]) {
                                 if (followSets[symbol].insert(lhs_follow).second) {
                                     changed = true;
@@ -136,7 +136,7 @@ bool Grammar::isLL1() {
             unordered_set<string> productionFirst;
 
             bool nullable = true;
-            for (const auto& symbol : production.symbols) {
+            for (const auto& symbol : production) {
                 if (symbol.front() == '\'' && symbol.back() == '\'') {
                     // Terminal: Add to First(production)
                     productionFirst.insert(symbol);

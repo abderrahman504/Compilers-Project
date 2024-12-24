@@ -8,24 +8,7 @@
 
 using namespace std;
 
-struct Production
-{
-    vector<string> symbols;
-    Production(vector<string> symbols) : symbols(symbols) {} // Implementation is so simple there is no need to do it in source file.
-    Production() = default;
-    // Converts the production to a string representation
-    std::string toString() const
-    {
-        std::ostringstream result;
-        for (const auto &symbol : symbols)
-        {
-            result << symbol << " ";
-        }
-        std::string output = result.str();
-        return output.empty() ? "" : output.substr(0, output.size() - 1); // Remove trailing space
-    }
-};
-
+using Production = vector<string>;
 using FirstSet = unordered_map<string, int>;
 
 class Grammar
