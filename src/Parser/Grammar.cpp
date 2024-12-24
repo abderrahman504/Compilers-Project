@@ -63,13 +63,19 @@ void Grammar::computeFirsts() {
 void Grammar::buildFollow(string symbol) {
     // If the follow set is already built, return.
     if (followSets.count(symbol)) return;
-
+    
     // Initialize the follow set for the symbol.
     followSets[symbol] = FollowSet();
-
+    if (symbol == getStartSymbol()) {
+        followSets[symbol]["$"] = 0; // Assign a default priority for the end marker.
+    }
+    // if(symbol == getStartSymbol()) followSets[symbol][] = start_symbol;
     // Iterate through all productions to compute the Follow set for the symbol.
+    //lhs = Non-terminal , rhs_list = all its productions in the grammar.
     for (const auto& [lhs, rhs_list] : productions) {
+        //loop over all productions
         for (const auto& production : rhs_list) {
+            //iterate through the production to catch the symbol we are computing its Follow set
             for (size_t i = 0; i < production.size(); ++i) {
                 if (production[i] == symbol) {
                     size_t j = i + 1;
@@ -86,12 +92,13 @@ void Grammar::buildFollow(string symbol) {
                         for (const auto& [elem, index] : first) {
                             if (elem != epsilon) {
                                 follow[elem] = index; // Use the index for tracking.
+                                
                             } else {
                                 nullable = true;
                             }
                         }
 
-                        ++j;
+                        break;
                     }
 
                     // If nullable or at the end, add Follow(lhs) to Follow(symbol).
