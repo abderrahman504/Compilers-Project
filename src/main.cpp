@@ -12,6 +12,6 @@ int main(int argv, char **argc)
 
 	// PHASE 2
 	Parser syntax_parser("example_grammer_LL1.txt");
-
+	syntax_parser.parse(tokens);
 	return 0;
 }

@@ -18,28 +18,29 @@ Parser::Parser(string grammar_file) : grmr(grammar_file){
 
 void Parser::parse(vector<TableEntry> input)
 {
+	input.push_back(TableEntry(eof, eof, -1, -1));
 	parseStack.push(eof);
 	parseStack.push(start_symbol);
 
-	vector<string> derivation;
+	vector<string> derivation = {start_symbol};
 	int derivation_i = 0;
 	int input_i = 0;
-	while(input_i < input.size())
+	printDerivation(derivation);
+	while(parseStack.size() > 0 && input_i < input.size())
 	{
-		printDerivation(derivation);
 		auto token = input[input_i];
 		// If stack has non terminal
 		if(grmr.getNonTerminals().count(parseStack.top()))
 		{
 			string reaction = parsingTable.getAction(parseStack.top(), token.type);
 			if(reaction == parsingTable.synch){
-				cout << "Sync err: ln " << token.line << ",col " << token.column << ". Expected " << parseStack.top() << "before " << token.token << endl;
+				cout << "Sync err at ln " << token.line << ",col " << token.column << ": Expected " << parseStack.top() << "before " << token.token << endl;
 				parseStack.pop();
 				// Skipping a symbol in derivation because it can't be expanded
 				derivation_i++;
 			}
 			else if(reaction == parsingTable.error){
-				cout << "Error: ln" << token.line << ",col " << token.column << ". Unexpected " << token.token << endl;
+				cout << "Error at ln" << token.line << ",col " << token.column << ": Unexpected " << token.token << endl;
 				input_i++;
 			}
 			else
@@ -55,13 +56,14 @@ void Parser::parse(vector<TableEntry> input)
 						parseStack.push(production[i]);
 						derivation.insert(derivation.begin()+derivation_i, production[i]);
 					}
-				} 
+				}
+				printDerivation(derivation);
 			}
 		}
 		// If stack has terminal
 		else{
 			if(parseStack.top() != input[input_i].type){
-				cout << "Error: ln" << token.line << ",col " << token.column << ". Unexpected " << token.token << endl;
+				cout << "Error at ln" << token.line << ",col " << token.column << ": Unexpected " << token.token << endl;
 				input_i++;
 			}
 			else{
@@ -74,7 +76,10 @@ void Parser::parse(vector<TableEntry> input)
 	if(input_i != input.size()){
 		cout << "Parse stack empty but input still remaining.\n";
 	}
-	else if(parseStack.top() == eof){
+	else if(parseStack.size() != 0){
+		cout << "All input consumed but stack is not empty.\n";
+	}
+	else{
 		cout << "Input parsed successfully.\n";
 	}
 }
