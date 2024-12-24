@@ -42,6 +42,10 @@ private:
     const unordered_map<string, int> getFirst(string symbol);
     // Returns the follow set of `symbol`. `symbol` must be a non-terminal.
     const unordered_set<string> getFollow(string symbol);
+    // Builds the FIRST sets of all non-terminals
+    void computeFirsts();
+    // Builds the FOLLOW sets of all non-terminals
+    void computeFollows();
 
 public:
     const string epsilon = "Epsilon";
@@ -49,21 +53,19 @@ public:
 
     Grammar(string grammer_file);
 
-    // Builds the FIRST sets of all non-terminals
-    void computeFirsts();
-    // Builds the FOLLOW sets of all non-terminals
-    void computeFollows();
 
     bool isLL1();
-    const unordered_map<string, vector<Production>> &getProductions() const;
+    // Gets the start symbol of the grammar;
+    string getStartSymbol();
+    const unordered_map<string, vector<Production>> getProductions() const;
     // Returns first sets of all non-terminals.
-    const unordered_map<string, unordered_map<string, int>> &getFirstSets() const;
+    const unordered_map<string, unordered_map<string, int>> getFirstSets() const;
     // Returns follow sets of all non-terminals.
-    const unordered_map<string, unordered_set<string>> &getFollowSets() const;
+    const unordered_map<string, unordered_set<string>> getFollowSets() const;
     // Returns terminals
-    const unordered_set<string> &getTerminals() const;
+    const unordered_set<string> getTerminals() const;
     // Returns non-terminals
-    const unordered_set<string> &getNonTerminals() const;
+    const unordered_set<string> getNonTerminals() const;
 
 };
 

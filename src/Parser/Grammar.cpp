@@ -16,6 +16,8 @@ Grammar::Grammar(string grammer_file){
     for(auto [symbol, prods] : reader_productions){
         for(auto p : prods) productions[symbol].push_back(Production(p));
     }
+    computeFirsts();
+    computeFollows();
 }
 
 void Grammar::buildFirst(string symbol){
@@ -51,16 +53,6 @@ void Grammar::buildFirst(string symbol){
         }
     }
 }
-
-//void Grammar::buildFollow(string symbol){
-//    // If the follow set is already build then return
-//    if(followSets.count(symbol)) return;
-//    followSets[symbol] = unordered_set<string>();
-//    // If this is the starting symbol then add the eof "$" to follow
-//    if(symbol == start_symbol) followSets[symbol].insert(eof);
-
-//    // implement later
-//}
 
 
 void Grammar::computeFirsts() {
@@ -200,42 +192,39 @@ bool Grammar::isLL1() {
 
 
 
-// Getter for productions
-const unordered_map<string, vector<Production>>& Grammar::getProductions() const {
-    return productions;
-}
-
-
 const unordered_map<string, int> Grammar::getFirst(string symbol){
-    if(terminals.count(symbol)) return unordered_map<string, int>{{symbol, -1}};
-    else if(non_terminals.count(symbol)){
+    if(non_terminals.count(symbol)){
         if(firstSets.count(symbol) == 0) buildFirst(symbol);
         return firstSets[symbol]; 
     }
-    else return unordered_map<string, int>();
+    else return unordered_map<string, int>{{symbol, -1}};
 }
 
 const unordered_set<string> Grammar::getFollow(string symbol){
     return followSets[symbol];
-    //if(non_terminals.count(symbol)){
-    //    if(followSets.count(symbol) == 0) buildFollow(symbol);
-    //    return followSets[symbol];
-    //}
-    //return unordered_set<string>();
 }
 
-const unordered_map<string, unordered_map<string, int>>& Grammar::getFirstSets() const {
+string Grammar::getStartSymbol(){
+    return start_symbol;
+}
+
+// Getter for productions
+const unordered_map<string, vector<Production>> Grammar::getProductions() const {
+    return productions;
+}
+
+const unordered_map<string, unordered_map<string, int>> Grammar::getFirstSets() const {
     return firstSets;
 }
 
-const unordered_map<string, unordered_set<string>>& Grammar::getFollowSets() const {
+const unordered_map<string, unordered_set<string>> Grammar::getFollowSets() const {
     return followSets;
 }
 
-const unordered_set<string>& Grammar::getTerminals() const {
+const unordered_set<string> Grammar::getTerminals() const {
     return terminals;
 }
 
-const unordered_set<string>& Grammar::getNonTerminals() const {
+const unordered_set<string> Grammar::getNonTerminals() const {
     return non_terminals;
 }

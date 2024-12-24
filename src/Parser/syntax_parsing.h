@@ -1,2 +1,3 @@
 #include "Grammar.h"
-#include "GrammerFileReader.h"
+#include "ParsingTable.h"
+#include "Parser.h"

@@ -8,7 +8,9 @@ build/lexical_analysis/Scanner.o \
 build/lexical_analysis/ProgramAnalyzer.o \
 build/Parser/Grammar.o \
 build/Parser/GrammerFileReader.o \
-build/Parser/ParsingTable.o
+build/Parser/ParsingTable.o \
+build/Parser/Parser.o 
+
 
 
 
