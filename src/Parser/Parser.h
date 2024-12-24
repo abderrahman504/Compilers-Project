@@ -7,6 +7,7 @@
 class Parser {
 private:
     ParsingTable parsingTable;
+    Grammar grmr;
     std::stack<std::string> parseStack;
     string eof;
     string epsilon;
