@@ -60,70 +60,68 @@ void Grammar::computeFirsts() {
 }
 
 // Placeholder for Follow Set computation
-void Grammar::computeFollows() {
-    // Implementation of the Follow Set algorithm goes here
-        bool changed = true;
+void Grammar::buildFollow(string symbol) {
+    // If the follow set is already built, return.
+    if (followSets.count(symbol)) return;
 
-    // Initialize Follow sets
-    for (const auto& nonTerminal : non_terminals) {
-        followSets[nonTerminal] = {};
-    }
+    // Initialize the follow set for the symbol.
+    followSets[symbol] = FollowSet();
 
-    // Add $ to the Follow set of the start symbol
-    followSets[start_symbol].insert(eof);
+    // Iterate through all productions to compute the Follow set for the symbol.
+    for (const auto& [lhs, rhs_list] : productions) {
+        for (const auto& production : rhs_list) {
+            for (size_t i = 0; i < production.size(); ++i) {
+                if (production[i] == symbol) {
+                    size_t j = i + 1;
 
-    while (changed) {
-        changed = false;
+                    FollowSet follow;
+                    bool nullable = true;
 
-        for (const auto& [lhs, rhs_list] : productions) {
-            for (const auto& production : rhs_list) {
-                for (size_t i = 0; i < production.size(); ++i) {
-                    const string& symbol = production[i];
+                    // Add First(beta) \ {ε} to Follow(symbol)
+                    while (j < production.size() && nullable) {
+                        nullable = false;
 
-                    if (std::find(non_terminals.begin(), non_terminals.end(), symbol) != non_terminals.end()) {
-                        // Symbol is a non-terminal
-                        bool nullable = true;
-
-                        // Add First(beta) \ {λ} to Follow(symbol)
-                        for (size_t j = i + 1; j < production.size(); ++j) {
-                            const auto& beta = production[j];
-                            if (beta.front() == '\'' && beta.back() == '\'') {
-                                // Terminal: Add to Follow(symbol)
-                                if (followSets[symbol].insert(beta).second) {
-                                    changed = true;
-                                }
-                                nullable = false;
-                                break;
+                        // Get the First set of the current symbol in the production.
+                        auto first = getFirst(production[j]);
+                        for (const auto& [elem, index] : first) {
+                            if (elem != epsilon) {
+                                follow[elem] = index; // Use the index for tracking.
                             } else {
-                                // Non-terminal: Add First(beta) \ {λ}
-                                for (const auto& [beta_first, _] : firstSets[beta]) {
-                                    if (beta_first != epsilon && followSets[symbol].insert(beta_first).second) {
-                                        changed = true;
-                                    }
-                                }
-
-                                // If beta cannot derive λ, stop
-                                if (firstSets[beta].find(epsilon) == firstSets[beta].end()) {
-                                    nullable = false;
-                                    break;
-                                }
+                                nullable = true;
                             }
                         }
 
-                        // If beta derives λ or is empty, add Follow(lhs) to Follow(symbol)
-                        if (nullable || i + 1 == production.size()) {
-                            for (const auto& lhs_follow : followSets[lhs]) {
-                                if (followSets[symbol].insert(lhs_follow).second) {
-                                    changed = true;
-                                }
-                            }
+                        ++j;
+                    }
+
+                    // If nullable or at the end, add Follow(lhs) to Follow(symbol).
+                    if (nullable || j == production.size()) {
+                        // Build the Follow set of LHS (if not already built).
+                        buildFollow(lhs);
+
+                        // Merge Follow(lhs) into Follow(symbol).
+                        for (const auto& [elem, index] : followSets[lhs]) {
+                            follow[elem] = index;
                         }
+                    }
+
+                    // Merge computed Follow into Follow(symbol).
+                    for (const auto& [elem, index] : follow) {
+                        followSets[symbol][elem] = index; // Update or insert into the map.
                     }
                 }
             }
         }
     }
 }
+
+void Grammar::computeFollows() {
+    // Ensure that Follow sets are computed for all non-terminals.
+    for (const auto& non_terminal : non_terminals) {
+        buildFollow(non_terminal);
+    }
+}
+
 
 // Check if the grammar is LL(1)
 bool Grammar::isLL1() {
@@ -177,7 +175,7 @@ bool Grammar::isLL1() {
 
             // If production is nullable, check FOLLOW set
             if (nullable) {
-                for (const auto& followSym : followSets[nonTerminal]) {
+                for (const auto& [followSym,_] : followSets[nonTerminal]) {
                     if (combinedFirst.find(followSym) != combinedFirst.end()) {
                         // Conflict between FIRST and FOLLOW sets
                         return false;
@@ -200,7 +198,7 @@ const FirstSet Grammar::getFirst(string symbol){
     else return FirstSet{{symbol, -1}};
 }
 
-const unordered_set<string> Grammar::getFollow(string symbol){
+const FollowSet Grammar::getFollow(string symbol){
     return followSets[symbol];
 }
 
@@ -217,7 +215,7 @@ const unordered_map<string, FirstSet> Grammar::getFirstSets() const {
     return firstSets;
 }
 
-const unordered_map<string, unordered_set<string>> Grammar::getFollowSets() const {
+const unordered_map<string, FollowSet> Grammar::getFollowSets() const {
     return followSets;
 }
 
